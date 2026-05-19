@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 7)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -256,7 +256,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms</div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 7</span></div>
                 <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
                 <div id="status-bar">
@@ -272,7 +272,7 @@
     </div>
 
     <script>
-        // FUNZIONE AUDIO ORIGINALE INTEGRATA
+        // CONFIGURAZIONE AUDIO RIPRISTINATA ORIGINALE
         let audioInitialized = false;
         let noiseGenerator = null;
         let filterEffect = null;
@@ -281,30 +281,21 @@
             if (audioInitialized) return;
             
             try {
-                // Avvia il contesto audio della libreria esterna legato al click di "Entra"
                 await Tone.start();
-                
-                // Creiamo un generatore di rumore "pink" (più cupo e morbido del rumore bianco)
                 noiseGenerator = new Tone.Noise("pink");
-                
-                // Creiamo un filtro passa-basso per dare l'effetto di un ronzio sordo e soffocante
                 filterEffect = new Tone.Filter({
                     type: "lowpass",
-                    frequency: 200, // Frequenza di taglio iniziale
+                    frequency: 200, 
                     Q: 2
                 });
 
-                // Configurazione volume generale (basso per sottofondo)
                 noiseGenerator.volume.value = -22; 
-
-                // Colleghiamo la catena audio esterna: Generatore -> Filtro -> Casse del PC
                 noiseGenerator.connect(filterEffect);
                 filterEffect.toDestination();
                 
-                // Avvia il loop audio continuo
                 noiseGenerator.start();
                 audioInitialized = true;
-                console.log("Tone.js inizializzato correttamente con Pink Noise.");
+                console.log("Audio Build 7 inizializzato correttamente con Pink Noise.");
             } catch (e) {
                 console.error("Errore di inizializzazione audio:", e);
             }
@@ -317,6 +308,22 @@
             inventory: [],
             currentRoomData: {}
         };
+
+        // ALTERNATIVE PROCEDURALI PER SOSTITUIRE "TI INOLTRI IN"
+        const movementTransitions = [
+            "Superi la soglia e ti ritrovi in",
+            "Svolti l'ennesimo angolo cieco, sbucando in",
+            "I tuoi passi ti conducono all'interno di",
+            "Prosegui a tentoni finché lo spazio non si apre su",
+            "Cammini senza meta finché non entri in",
+            "Ti lasci alle spalle il corridoio precedente per penetrare in",
+            "Stisciando rasente la parete, accedi a",
+            "Avanzi stancamente, finendo dritto dentro",
+            "Il percorso si snoda bruscamente, rivelando",
+            "Oltrepassi una fessura nel muro e ti ritrovi in",
+            "Senza una reale direzione, scivoli dentro",
+            "Spingi lo sguardo in avanti mentre entri in"
+        ];
 
         const roomTypes = [
             "un corridoio ad angolo retto", "una stanza quadrata completamente vuota", 
@@ -360,12 +367,14 @@
         function generateRandomRoom() {
             gameState.roomCount++;
             
+            // Selezione casuale della transizione di movimento per evitare ripetizioni
+            const transition = movementTransitions[Math.floor(Math.random() * movementTransitions.length)];
             const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
             const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
             const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
             const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
 
-            let roomText = `Ti inoltri in ${type}.\n\nIntorno a te, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
+            let roomText = `${transition} ${type}.\n\nIntorno a te, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
             let sanityImpact = 0;
             let hasItem = false;
 
@@ -426,7 +435,6 @@
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
                 
-                // INTERAZIONE LIBRERIA AUDIO SOTTO IL 30% RIPRISTINATA
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(90, 0.5); 
                     noiseGenerator.volume.rampTo(-15, 0.5);
@@ -434,7 +442,6 @@
             } else {
                 body.classList.remove("insane-bg");
                 
-                // Ripristino parametri standard dell'audio originale
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(200, 0.5);
                     noiseGenerator.volume.rampTo(-22, 0.5);
@@ -509,7 +516,6 @@
         }
 
         function executeGameOver() {
-            // Spegne il motore audio della libreria esterna al Game Over usando i riferimenti originari
             if (audioInitialized && noiseGenerator) {
                 noiseGenerator.stop();
                 audioInitialized = false;
@@ -536,7 +542,6 @@
         }
 
         function initGame() {
-            // Inizializza l'audio nativo della versione precedente tramite il bottone di sblocco della splash
             initAudio();
             document.getElementById("splash-screen").style.display = "none";
             generateRandomRoom();
