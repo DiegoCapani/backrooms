@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE BACKROOMS: INFINITE DESCENT (v0.1)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (v0.2)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
@@ -154,7 +154,7 @@
 <body id="body-screen">
 
     <div id="game-container" class="animate__animated animate__fadeIn">
-        <div id="game-title">The Backrooms <span style="font-size: 0.9rem; letter-spacing: 0;">v0.1</span></div>
+        <div id="game-title">The Backrooms <span style="font-size: 0.9rem; letter-spacing: 0;">v0.2</span></div>
         <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
         <div id="status-bar">
@@ -168,7 +168,7 @@
     </div>
 
     <script>
-        // ENGINE AUDIO NATIVO CORRETTO
+        // ENGINE AUDIO NATIVO
         let audioCtx = null;
         let droneOsc1 = null;
         let droneOsc2 = null;
@@ -182,7 +182,6 @@
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // Se il contesto è in uno stato sospeso (politiche del browser), lo riattiviamo
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
@@ -217,7 +216,7 @@
             }
         }
 
-        // SINTESI DEI RUMORI DI AMBIENTAZIONE (RAREFAZIONE APPLICATA)
+        // SINTESI DEI RUMORI DI AMBIENTAZIONE (RARI)
         function playProceduralHorrorSound() {
             if (!audioStarted || !audioCtx) return;
 
@@ -245,7 +244,7 @@
                 }
             } 
             else if (soundType === 1) {
-                // PORTA CHE SBATTE COLPENDO LE PARETI
+                // PORTA CHE SBATTE
                 const osc = audioCtx.createOscillator();
                 const noiseGain = audioCtx.createGain();
                 
@@ -290,6 +289,13 @@
             currentRoomData: {}
         };
 
+        // ALTERNATIVE NARRATIVE PER L'INGRESSO NELLE STANZE
+        const transitions = [
+            "Ti spingi dentro", "Varchi la soglia di", "I tuoi passi ti portano in", 
+            "Ti ritrovi all'interno di", "Ti inoltri in", "Scivoli silenziosamente in", 
+            "Procedi a tentoni dentro", "Superi un angolo cieco sbucando in", "Guadagni faticosamente l'accesso a"
+        ];
+
         const roomTypes = [
             "un corridoio ad angolo retto", "una stanza quadrata completamente vuota", 
             "uno snodo a tre vie", "un immenso salone pilastrato", 
@@ -332,12 +338,14 @@
         function generateRandomRoom() {
             gameState.roomCount++;
             
+            const transition = transitions[Math.floor(Math.random() * transitions.length)];
             const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
             const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
             const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
             const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
 
-            let roomText = `Ti inoltri in ${type}.\n\nOsservando i dettagli, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
+            // COMPOSIZIONE DINAMICA SENZA RIPETIZIONI DI FRASE FISSA
+            let roomText = `${transition} ${type}.\n\nOsservando i dettagli, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
             let sanityImpact = 0;
             let hasItem = false;
 
@@ -377,7 +385,7 @@
                 choices: choices
             };
 
-            // PROBABILITÀ NOTEVOLMENTE RIDOTTA (10% normale, 25% in stato di pazzia)
+            // FREQUENZA RUMORI FISSA AL 10% (25% sotto la soglia di pazzia)
             const soundThreshold = gameState.sanity < 30 ? 0.25 : 0.10;
             if (Math.random() < soundThreshold && gameState.roomCount > 1) {
                 setTimeout(playProceduralHorrorSound, 500);
@@ -449,7 +457,6 @@
                 button.innerText = choice.text;
                 
                 button.addEventListener("click", () => {
-                    // Avviamo o forziamo la riattivazione dell'audio al click
                     startSoundscape();
 
                     if (choice.action === "move") {
