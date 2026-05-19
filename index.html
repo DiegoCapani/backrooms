@@ -1,11 +1,369 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+    <title>The Backrooms: No-Clip Reality</title>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        /* PALETTE COLORI BACKROOMS (Giallo Liminale) */
+        :root {
+            --bg-yellow: #d1c28a;       /* Il tipico giallo carta da parati sporca */
+            --shadow-yellow: #a39562;   /* Giallo d'ombra */
+            --text-dark: #2b281f;       /* Testo quasi nero ma caldo */
+            --neon-flicker: #fffbdf;    /* Luce dei neon */
+            --terminal-red: #8b0000;    /* Per la sanità mentale bassa */
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* EFFETTO TELECAMERA VHS / STANZA SCHERMATA (Disturbo visivo) */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 10;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* EFFETTO VIGNETTE (Bordi oscurati per dare claustrofobia) */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.4) 100%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #game-container {
+            max-width: 700px;
+            width: 100%;
+            border: 3px double var(--text-dark);
+            padding: 30px;
+            background-color: rgba(209, 194, 138, 0.85); /* Trasparenza per far vedere lo sfondo */
+            backdrop-filter: blur(1px);
+            z-index: 2;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.1), 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        /* STATUS BAR SUPERIORE */
+        #status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--text-dark);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .stat-label {
+            color: #524c3a;
+        }
+
+        #stat-sanity {
+            transition: color 0.5s ease;
+        }
+
+        /* SEZIONE INVENTARIO INTERATTIVA */
+        #inventory-container {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .use-item-btn {
+            background: var(--text-dark);
+            color: var(--bg-yellow);
+            border: none;
+            padding: 2px 6px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+
+        .use-item-btn:hover {
+            background: var(--terminal-red);
+            color: #fff;
+        }
+
+        /* SCHERMO DI TESTO */
+        #text-display {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            margin-bottom: 35px;
+            min-height: 180px;
+            white-space: pre-line;
+            font-weight: 600;
+        }
+
+        /* CONTAINER DELLE SCELTE */
+        #choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* PULSANTI DELLE SCELTE */
+        .choice-btn {
+            background-color: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--text-dark);
+            padding: 14px 20px;
+            font-family: inherit;
+            font-size: 1.05rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .choice-btn:hover {
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+            padding-left: 30px;
+        }
+
+        .choice-btn:hover::before {
+            content: "> ";
+            position: absolute;
+            left: 12px;
+        }
+
+        /* EFFETTI HORROR DI DISTURBO (GLITCH) TRIGGERATI DA JS */
+        .glitch-screen {
+            animation: flash 0.2s infinite, shakeX 0.4s infinite;
+        }
+    </style>
+</head>
+<body id="body-screen">
+
+    <div id="game-container" class="animate__animated animate__fadeIn">
+        <div id="status-bar">
+            <div><span class="stat-label">ZONA:</span> <span id="stat-location">Livello 0</span></div>
+            <div><span class="stat-label">SANITA':</span> <span id="stat-sanity">100%</span></div>
+            <div id="inventory-container"><span class="stat-label">ZAINO:</span> <span id="stat-inventory">Vuoto</span></div>
+        </div>
+
+        <div id="text-display"></div>
+
+        <div id="choices-container"></div>
+    </div>
+
+    <script>
+        // STATO DEL GIOCO
+        let gameState = {
+            currentNode: "inizio",
+            sanity: 100,
+            inventory: []
+        };
+
+        // DATABASE DELLE STANZE (STRUTTURATO SUL GIALLO LIMINALE)
+        const roomsData = {
+            inizio: {
+                locationName: "Livello 0 - La Lobby",
+                text: "Il ronzio delle luci al neon sopra di te è così forte da farti vibrare i denti. \n\nTi guardi intorno: chilometri di stanze vuote e corridoi ad angolo retto. La carta da parati è di un giallo monotono, umida e scrostata. La moquette sotto i tuoi piedi emana un odore acido di acqua stagnante.\n\nNon c'è nessuno. O almeno, speri non ci sia nessuno.",
+                choices: [
+                    { text: "Cammina dritto, seguendo l'odore della moquette", nextNode: "corridoio_giallo" },
+                    { text: "Fissa il muro alla tua sinistra... sembra vibrare leggermente", nextNode: "anomalia_parete" }
+                ]
+            },
+            corridoio_giallo: {
+                locationName: "Livello 0 - Labirinto",
+                text: "Giri l'ennesimo angolo identico. L'architettura non ha senso, sembra generata da un computer impazzito. La sete comincia a farsi sentire.\n\nSu un tavolino di plastica abbandonato al centro di una stanza, noti una bottiglia senza etichetta riempita di un liquido color ambra.",
+                choices: [
+                    { text: "Prendi la bottiglia (Acqua Mandorlina)", nextNode: "prendi_acqua" },
+                    { text: "Non ti fidi. Tira dritto infilandoti in un passaggio stretto", nextNode: "passaggio_stretto" }
+                ]
+            },
+            prendi_acqua: {
+                locationName: "Livello 0 - Stanza del Tavolo",
+                text: "Infil nello zaino l'Acqua Mandorlina. Può aiutarti a restare lucido quando senti che stai per impazzire. \n\nAll'improvviso, una delle luci al neon sopra di te si spegne con un rumore secco. Nel buio improvviso che ne segue, senti un suono... come unghie che grattano freneticamente sulla moquette dietro di te.",
+                onEnter: () => {
+                    if (!gameState.inventory.includes("Acqua Mandorlina")) {
+                        gameState.inventory.push("Acqua Mandorlina");
+                    }
+                },
+                choices: [
+                    { text: "Corri! Corri alla cieca nel giallo!", nextNode: "fuga_panico" }
+                ]
+            },
+            anomalia_parete: {
+                locationName: "Livello 0 - Glitch Spaziale",
+                text: "Ti avvicini alla parete gialla. Se inclini la testa, la consistenza della carta da parati sembra liquefarsi. Sfiori il muro con la mano: le tue dita passano attraverso la materia solida.\n\nÈ una falla nella realtà. Un punto di No-Clip. Se spingi, potresti cadere chissà dove.",
+                choices: [
+                    { text: "Attraversa la parete con tutto il corpo", nextNode: "noclip_successo" },
+                    { text: "Hai paura. Allontanati e continua a camminare", nextNode: "inizio" }
+                ]
+            },
+            passaggio_stretto: {
+                locationName: "Livello 0 - Claustrofobia",
+                text: "Il passaggio si stringe sempre di più. Le pareti gialle ti premono contro le spalle. Il ronzio dei neon qui dentro si trasforma in un sibilo acuto che ti spacca i timpani.\n\nSenti l'ansia schiacciarti il petto. Stai perdendo la ragione.",
+                onEnter: () => {
+                    gameState.sanity -= 25;
+                    triggerHorrorEffect(true); // Attiva tremolio visivo di paura
+                },
+                choices: [
+                    { text: "Torna indietro prima che lo spazio si chiuda del tutto", nextNode: "corridoio_giallo" }
+                ]
+            },
+            fuga_panico: {
+                locationName: "Livello 0 - Inseguimento",
+                text: "Corri senza guardarti indietro. Il cuore ti batte in gola. Svolti a destra, poi a sinistra, perdi completamente l'orientamento. Il rumore di passi bagnati alle tue spalle sembra svanire lentamente.\n\nTi accasci contro un muro, esausto e terrorizzato. Il giallo ti sta consumando il cervello.",
+                onEnter: () => {
+                    gameState.sanity -= 30;
+                    triggerHorrorEffect(true);
+                },
+                choices: [
+                    { text: "Cerca di calmarti e pianifica la prossima mossa", nextNode: "corridoio_giallo" }
+                ]
+            },
+            noclip_successo: {
+                locationName: "??? - Caduta Libera",
+                text: "Spingi contro il muro e cadi nel vuoto. Il giallo scompare, sostituito da un freddo vento industriale e dal rumore di enormi tubature di metallo. \n\nSei scivolato fuori dal Livello 0. Sei vivo, ma l'incubo è appena iniziato...\n\n[FINE DELLA DEMO - SEI ARRIVATO AL LIVELLO 1]",
+                choices: []
+            }
+        };
+
+        // MOTORE DI RENDERING
+        function renderGame() {
+            const currentNode = roomsData[gameState.currentNode];
+
+            // Controllo Sanità Mentale Critica
+            if (gameState.sanity <= 0) {
+                gameState.sanity = 0;
+                executeGameOver();
+                return;
+            }
+
+            // Esegui eventi della stanza
+            if (currentNode.onEnter) {
+                currentNode.onEnter();
+            }
+
+            // Reset effetti visivi se la stanza è sicura
+            if (gameState.currentNode === "inizio" || gameState.currentNode === "corridoio_giallo") {
+                triggerHorrorEffect(false);
+            }
+
+            // Aggiorna Interfaccia Scritta
+            document.getElementById("stat-location").innerText = currentNode.locationName;
+            
+            const sanityElement = document.getElementById("stat-sanity");
+            sanityElement.innerText = gameState.sanity + "%";
+            if (gameState.sanity < 50) {
+                sanityElement.style.color = "var(--terminal-red)";
+            } else {
+                sanityElement.style.color = "var(--text-dark)";
+            }
+
+            // Gestione Inventario con pulsante "USA"
+            const inventoryElement = document.getElementById("stat-inventory");
+            if (gameState.inventory.length === 0) {
+                inventoryElement.innerText = "Vuoto";
+            } else {
+                inventoryElement.innerHTML = "";
+                gameState.inventory.forEach((item, index) => {
+                    const itemSpan = document.createElement("span");
+                    itemSpan.innerText = item;
+                    
+                    if (item === "Acqua Mandorlina") {
+                        const useBtn = document.createElement("button");
+                        useBtn.innerText = "BEVI";
+                        useBtn.classList.add("use-item-btn");
+                        useBtn.addEventListener("click", () => useAlmondWater(index));
+                        itemSpan.appendChild(useBtn);
+                    }
+                    inventoryElement.appendChild(itemSpan);
+                });
+            }
+
+            // Stampa del testo narrativo
+            document.getElementById("text-display").innerText = currentNode.text;
+
+            // Generazione Pulsanti Scelta
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+
+            currentNode.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.classList.add("choice-btn", "animate__animated", "animate__fadeInUp");
+                button.innerText = choice.text;
+                button.addEventListener("click", () => {
+                    gameState.currentNode = choice.nextNode;
+                    renderGame();
+                });
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        // FUNZIONE MECCANICA: USARE ACQUA MANDORLINA
+        function useAlmondWater(index) {
+            gameState.inventory.splice(index, 1); // Rimuovi dall'inventario
+            gameState.sanity = Math.min(gameState.sanity + 40, 100); // Cura sanità max 100
+            triggerHorrorEffect(false);
+            renderGame();
+        }
+
+        // FUNZIONE EFFETTO HORROR (Glitch di disturbo sullo schermo)
+        function triggerHorrorEffect(activate) {
+            const screen = document.getElementById("body-screen");
+            if (activate) {
+                screen.classList.add("glitch-screen");
+            } else {
+                screen.classList.remove("glitch-screen");
+            }
+        }
+
+        // GAME OVER PER FOLLIA
+        function executeGameOver() {
+            triggerHorrorEffect(true);
+            document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
+            document.getElementById("text-display").innerText = "Il giallo ha vinto.\n\nIl ronzio dei neon è diventato l'unico suono che il tuo cervello riesce a elaborare. Hai perso la tua umanità, diventando un'altra ombra errante tra le pareti del Livello 0.";
+            
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+            const restartBtn = document.createElement("button");
+            restartBtn.classList.add("choice-btn");
+            restartBtn.innerText = "Ripristina la Realtà (Ricomincia)";
+            restartBtn.addEventListener("click", () => {
+                gameState.currentNode = "inizio";
+                gameState.sanity = 100;
+                gameState.inventory = [];
+                triggerHorrorEffect(false);
+                renderGame();
+            });
+            choicesContainer.appendChild(restartBtn);
+        }
+
+        // Avvio iniziale
+        renderGame();
+    </script>
 </body>
 </html>
