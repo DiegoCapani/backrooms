@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 14)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 15)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -70,11 +70,48 @@
         }
 
         #splash-container {
-            max-width: 500px;
+            max-width: 520px;
             border: 2px dashed var(--text-dark);
             padding: 35px 25px;
             background-color: rgba(226, 206, 115, 0.85);
             backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .splash-title {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin: 0 0 4px 0;
+            color: var(--text-dark);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .splash-subtitle {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin: 0 0 25px 0;
+            opacity: 0.8;
+            font-weight: bold;
+        }
+
+        .audio-alert {
+            border: 1px solid var(--text-dark);
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-size: 0.8rem;
+            font-weight: bold;
+            line-height: 1.4;
+            background-color: rgba(0, 0, 0, 0.03);
+            max-width: 100%;
+        }
+
+        .audio-icon {
+            font-size: 1.4rem;
+            display: block;
+            margin-bottom: 6px;
         }
 
         .start-btn {
@@ -86,7 +123,7 @@
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 30px;
+            margin-top: 20px;
             text-transform: uppercase;
             box-shadow: 0 5px 0 #12110d;
             transition: all 0.1s ease;
@@ -96,6 +133,14 @@
         .start-btn:active {
             transform: translateY(4px);
             box-shadow: 0 1px 0 #12110d;
+        }
+
+        .developer-credits {
+            font-size: 0.75rem;
+            margin-top: 20px;
+            letter-spacing: 1px;
+            font-weight: bold;
+            opacity: 0.9;
         }
 
         /* VIEWPORT STRUTTURALE MOBILE-SAFE */
@@ -242,15 +287,26 @@
 </head>
 <body id="body-screen">
 
-    <!-- SPLASH SCREEN -->
+    <!-- SPLASH SCREEN AGGIORNATA (BUILD 15) -->
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
-            <h1 style="font-size: 1.4rem; letter-spacing: 3px; margin-top: 0; color: var(--text-dark);">SIMULAZIONE AVVIATA</h1>
-            <p style="font-size: 0.95rem; line-height: 1.6; text-align: left; color: #3d392b; font-weight: bold;">
-                Il sistema audio procedurale richiede l'interazione dell'utente per inizializzare i sintetizzatori di sottofondo e gli stimoli d'ambiente.<br><br>
-                Premi "ENTRA" per stabilizzare il segnale e iniziare l'esplorazione.
+            <h1 class="splash-title">THE BACKROOMS</h1>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 15)</div>
+            
+            <p style="font-size: 0.9rem; line-height: 1.5; text-align: left; color: #3d392b; font-weight: bold; margin: 0 0 10px 0;">
+                Il sistema richiede l'interazione per inizializzare i sintetizzatori di frequenza d'ambiente e la sintonizzazione procedurale del segnale.
             </p>
+
+            <!-- RACCOMANDAZIONE CUFFIE CON ICONA STILIZZATA -->
+            <div class="audio-alert">
+                <span class="audio-icon">[ 🎧 ]</span>
+                RACCOMANDAZIONE: Per un'esperienza immersiva e per percepire i segnali di minaccia nell'ombra, si raccomanda caldamente l'uso delle cuffie.
+            </div>
+
             <button class="start-btn" onclick="initGame()">Entra</button>
+            
+            <!-- CREDITI FIRMA DI SVILUPPO -->
+            <div class="developer-credits">Developed by Diego Capani</div>
         </div>
     </div>
 
@@ -258,7 +314,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 14</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 15</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -274,7 +330,7 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE AUDIO - BUILD 14
+        // CONFIGURAZIONE AUDIO
         let audioInitialized = false;
         let noiseGenerator = null;
         let filterEffect = null;
@@ -351,13 +407,13 @@
             currentRoomData: {}
         };
 
-        // MATRICE DI SCRITTURA PROCEDURALE ESPANSA (BUILD 14)
+        // MATRICE DI SCRITTURA PROCEDURALE
         const movementTransitions = [
             "Superi la soglia e ti ritrovi in", "Svolti l'ennesimo angolo cieco, sbucando in",
-            "I tuoi passi ti conducono all'interno di", "Prosegui a tentoni finché lo spazio non si abre su",
+            "I tuoi passi ti conducono all'interno di", "Prosegui a tentoni finché lo spazio non si apre su",
             "Cammini senza meta finché non entri in", "Ti lasci alle spalle il corridoio precedente per penetrare in",
             "Strisciando rasente la parete, accedi a", "Avanzi stancamente, finendo dritto dentro",
-            "Il percorso si snoda bruscamente, rivelando", "Oltrepassi una fessura nel muro e ti ritrovi in"
+            "Il percorso si snoda bruscamente, revealing", "Oltrepassi una fessura nel muro e ti ritrovi in"
         ];
 
         const roomTypes = [
@@ -389,7 +445,7 @@
             "Dalle lampade sospese proviene quel ronzio ossessivo che vibra nei timpani."
         ];
 
-        // MATRICE DEGLI OGGETTI (100+ COMBINAZIONI PROCEDURALI)
+        // COMBINAZIONI OGGETTI
         const objectDetails = [
             "Al centro dello spazio noti un mucchio di sedie per ufficio in plastica impilate e accatastate in modo precario.",
             "Contro il lato del muro è appoggiata una vecchia scrivania in finto legno laminato, con i cassetti divelti.",
@@ -400,7 +456,7 @@
             "Accanto a un pilastro si trova un ventilatore a piantana arrugginito, le cui pale girano lentissime senza produrre aria.",
             "Vedi una fila di tre telefoni fissi a muro con i cavi intrecciati e tranciati di netto che pendono verso il pavimento.",
             "A terra giace una lavagna bianca da conferenze coperta di indecifrabili calcoli e cancellature ossessive.",
-            "Una pianta finta in plastica, completamente coperta da uno spesso strato di polvere grigia, occupa un angolo morto.",
+            "Una pianta finta in plastica, completamente coperta da uno esso strato di polvere grigia, occupa un angolo morto.",
             "Ci sono tre scatoloni di cartone bagnati accatastati; uno di essi è sfondato e rivela moduli cartacei completamente in bianco.",
             "Un vecchio orologio analogico da parete è appeso storto; le lancette sono ferme, ma emette un ticchettio metallico intermittente.",
             "Sul pavimento noti una pozzanghera scura circondata da bicchieri di plastica monouso schiacciati.",
@@ -409,11 +465,11 @@
             "Vedi una sedia a rotelle da ospedale abbandonata di traverso, con una ruota che gira ancora nel silenzio."
         ];
 
-        // POOL DI AVVISTAMENTI RARI (SAGOME E FIGURE OSCURE)
+        // POOL DI AVVISTAMENTI RARI
         const anomalyDetails = [
             "Per una frazione di secondo, scorgi una sagoma umana scura e immobile infossata contro l'angolo del corridoio in fondo. Svanisce non appena provi a mettere a fuoco.",
             "In lontananza, sul limitare della luce del neon, intravedi il profilo nero e distorto di un animale quadrupede che scivola silenzioso dietro una svolta.",
-            "Una silhouette antropomorfa completamente scura si staglia contro il riflesso della parete successiva. Rimane ferma,沒有 volto, prima di dissolversi nel nulla.",
+            "Una silhouette antropomorfa completamente scura si staglia contro il riflesso della parete successiva. Rimane ferma, senza volto, prima di dissolversi nel nulla.",
             "Dalla penombra della stanza adiacente spunta una figura umana scarna e scura; solleva un braccio verso di te prima che un neon sfarfalli, facendola sparire."
         ];
 
@@ -452,21 +508,18 @@
             const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
             const objectInfo = objectDetails[Math.floor(Math.random() * objectDetails.length)];
 
-            // COMPOSIZIONE BASE DELLA STANZA PROCEDURALE
             let roomText = `${transition} ${type}\n\n${wall} ${floor} ${neon}\n\n${objectInfo}`;
             let sanityImpact = 0;
             let hasItem = false;
             let triggeredAnomaly = false;
 
-            // FIX RARI AVVISTAMENTI (7% PROBABILITÀ DI APPARIZIONE SAGOME)
             if (gameState.roomCount > 1 && Math.random() < 0.07) {
                 const anomaly = anomalyDetails[Math.floor(Math.random() * anomalyDetails.length)];
                 roomText += `\n\n[ATTENZIONE]: ${anomaly}`;
-                sanityImpact = -25; // Forte colpo alla sanità mentale
+                sanityImpact = -25;
                 triggeredAnomaly = true;
             }
 
-            // GESTIONE EVENTI STANDARD (SOLO SE NON C'È ANOMALIA VISIVA CRITICA)
             if (!triggeredAnomaly) {
                 const hasWaterInInventory = gameState.inventory.includes("Acqua Mandorlina");
                 const randomEvent = Math.random();
@@ -480,14 +533,12 @@
                 }
             }
 
-            // MOTORE AUDIO HORROR ASSOCIATO AL MOVIMENTO COERENTE
+            // TRIGGER AUDIO
             if (gameState.roomCount > 1) {
                 const triggerChance = Math.random();
                 if (triggeredAnomaly) {
-                    // Se c'è la sagoma, spara un suono horror assicurato al 100%
                     setTimeout(() => { Math.random() > 0.5 ? playProceduralBreath() : playProceduralScreech(); }, 300);
                 } else if (triggerChance < 0.18) {
-                    // Altrimenti normale spawn casuale raro di suoni d'ambiente
                     const soundType = Math.floor(Math.random() * 3);
                     setTimeout(() => {
                         if (soundType === 0) { playProceduralFootstep(); playProceduralFootstep(); }
