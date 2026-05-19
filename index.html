@@ -54,7 +54,7 @@
             pointer-events: none;
         }
 
-        /* IL CONTENITORE DI GIOCO REMANE SEMPRE FERMO E LEGGIBILE */
+        /* Il contenitore rimane stabile e leggibile */
         #game-container {
             max-width: 700px;
             width: 100%;
@@ -62,11 +62,10 @@
             padding: 30px;
             background-color: rgba(226, 206, 115, 0.95); 
             backdrop-filter: blur(1px);
-            z-index: 20; /* Sopra gli effetti di glitch dello sfondo */
+            z-index: 20; 
             box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.2);
         }
 
-        /* Titoli in testa */
         #game-title {
             text-align: center;
             font-size: 1.6rem;
@@ -87,7 +86,6 @@
             color: #57523d;
         }
 
-        /* Status Bar */
         #status-bar {
             display: flex;
             justify-content: space-between;
@@ -118,7 +116,6 @@
 
         .use-item-btn:hover { background: var(--terminal-red); color: #fff; }
 
-        /* Schermo di testo */
         #text-display {
             font-size: 1.15rem;
             line-height: 1.6;
@@ -152,34 +149,45 @@
 
         .choice-btn:hover::before { content: "> "; position: absolute; left: 12px; }
 
-        /* GLITCH SOTTOCONTROLLO: scuote solo lo sfondo, dura 1 secondo e non si ripete all'infinito */
+        /* EFFETTI VISIVI DI PAZZIA SOLTANTO SULLO SFONDO */
         .glitch-bg {
             animation: shakeX 1s ease-in-out 1;
+        }
+
+        /* Quando la pazzia è costante sotto il 30% lo sfondo trema in modo continuo ma impercettibile */
+        .insane-bg {
+            animation: shakeX 4s ease-in-out infinite;
+            opacity: 0.95;
         }
     </style>
 </head>
 <body id="body-screen">
 
     <div id="game-container" class="animate__animated animate__fadeIn">
-        <!-- Titoli in testa -->
         <div id="game-title">The Backrooms</div>
         <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
-        <!-- Barra di Stato -->
         <div id="status-bar">
             <div><span class="stat-label">STANZA:</span> <span id="stat-location" class="stat-val">#0</span></div>
             <div><span class="stat-label">SANITA':</span> <span id="stat-sanity" class="stat-val">100%</span></div>
             <div id="inventory-container"><span class="stat-label">ZAINO:</span> <span id="stat-inventory" class="stat-val">Vuoto</span></div>
         </div>
 
-        <!-- Schermo Narrativo -->
         <div id="text-display"></div>
-
-        <!-- Opzioni Utente -->
         <div id="choices-container"></div>
     </div>
 
+    <!-- Elemento Audio nascosto in loop -->
+    <audio id="horror-soundscape" loop>
+        <source src="https://assets.mixkit.co/active_storage/sfx/2567/2567-84.wav" type="audio/wav">
+    </audio>
+
     <script>
+        // CONFIGURAZIONE AUDIO
+        const bgAudio = document.getElementById("horror-soundscape");
+        bgAudio.volume = 0.15; // Volume di sottofondo basso e discreto
+        let audioStarted = false;
+
         // STATO DEL GIOCO
         let gameState = {
             roomCount: 0,
@@ -188,7 +196,6 @@
             currentRoomData: {}
         };
 
-        // DIZIONARI PER LA GENERAZIONE INFINITA
         const roomTypes = [
             "un corridoio ad angolo retto", "una stanza quadrata completamente vuota", 
             "uno snodo a tre vie", "un immenso salone pilastrato", 
@@ -197,7 +204,7 @@
 
         const wallDetails = [
             "la carta da parati gialla si sta scollando, rivelando vecchie macchie di umidità.",
-            "les pareti sono modellate in un giallo accecante e uniforme che stordisce la vista.",
+            "le pareti sono modellate in un giallo accecante e uniforme che stordisce la vista.",
             "qualcuno ha tracciato delle frecce sbiadite sul muro con un pennarello, ma girano in tondo.",
             "la superficie della parete sembra quasi tremare se provi a guardarla con la coda dell'occhio."
         ];
@@ -206,7 +213,7 @@
             "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
             "l'odore acido di muffa e polvere emanato dal pavimento ti stringe la gola.",
             "il pavimento di vecchio linoleum scricchiola pesantemente a ogni passo.",
-            "strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
+            "strisce di moquette sono stato strappate via, lasciando intravedere il cemento grezzo."
         ];
 
         const neonDetails = [
@@ -215,6 +222,21 @@
             "la luce è fissa, fredda e ingannevole, non capisci da dove arrivi la corrente.",
             "il ronzio dei neon sembra risuonare direttamente nella tua scatola cranica."
         ];
+
+        // FUNZIONE PER GLITCHARE IL TESTO QUANDO LA SANITA' E' SOTTO IL 30%
+        function applyMadnessToText(text) {
+            if (gameState.sanity >= 30) return text;
+            
+            // Sostituisce circa il 12% dei caratteri con simboli distorti della follia
+            const glitchChars = ["§", "#", "Ø", "*", "!", "@", "æ", "¶", "??"];
+            let chars = text.split("");
+            for (let i = 0; i < chars.length; i++) {
+                if (Math.random() < 0.12 && chars[i] !== "\n" && chars[i] !== " ") {
+                    chars[i] = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }
+            }
+            return chars.join("");
+        }
 
         // GENERATORE PROCEDURALE DI STANZE
         function generateRandomRoom() {
@@ -234,7 +256,7 @@
                 roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
                 hasItem = true;
             } else if (randomEvent > 0.75) {
-                roomText += "\n\nIl ronzio visivo e sonoro raddoppia d'intensità per un attimo. Un senso di vuoto assoluto ti colpisce lo stomaco.";
+                roomText += "\n\nIl ronzio visivo raddoppia d'intensità per un attimo. Un senso di vuoto assoluto ti colpisce lo stomaco.";
                 sanityImpact = -15;
             } else if (randomEvent > 0.65 && randomEvent <= 0.75) {
                 roomText += "\n\nAvverti un brivido improvviso. Oltre l'angolo cieco davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
@@ -248,6 +270,16 @@
 
             if (hasItem) {
                 choices.unshift({ text: "Raccogli l'Acqua Mandorlina", action: "loot" });
+            }
+
+            // MECCANICA DI PAZZIA: Aggiungi scelte folli e pericolose se sanità < 30%
+            if (gameState.sanity < 30) {
+                const fakeChoices = [
+                    { text: "Girati di scatto. Qualcuno sta respirando sul tuo collo.", action: "madness_panic" },
+                    { text: "Gratta le pareti. C'è un'uscita dietro la carta da parati.", action: "madness_panic" },
+                    { text: "IL GIALLO. IL GIALLO. IL GIALLO.", action: "madness_panic" }
+                ];
+                choices.push(fakeChoices[Math.floor(Math.random() * fakeChoices.length)]);
             }
 
             gameState.currentRoomData = {
@@ -267,22 +299,26 @@
 
             const room = gameState.currentRoomData;
 
-            // Applica danno alla sanità ed esegui il glitch temporaneo dello sfondo
+            // Gestione danni sanità e attivazione degli stati visivi dello sfondo
+            const body = document.getElementById("body-screen");
             if (room.sanityImpact < 0) {
                 gameState.sanity += room.sanityImpact;
                 room.sanityImpact = 0; 
                 triggerGlitchEffect(true);
                 if (gameState.sanity <= 0) { renderGame(); return; }
+            } else if (gameState.sanity < 30) {
+                // Sotto il 30% lo sfondo ha un tremolio continuo ma controllato
+                body.classList.add("insane-bg");
             } else {
-                triggerGlitchEffect(false);
+                body.classList.remove("insane-bg");
             }
 
-            // Aggiorna UI
+            // Aggiorna UI Barra di Stato
             document.getElementById("stat-location").innerText = `#${gameState.roomCount}`;
             
             const sanityElement = document.getElementById("stat-sanity");
             sanityElement.innerText = gameState.sanity + "%";
-            sanityElement.style.color = gameState.sanity < 50 ? "var(--terminal-red)" : "var(--text-dark)";
+            sanityElement.style.color = gameState.sanity < 30 ? "var(--terminal-red)" : "var(--text-dark)";
 
             // Gestione Inventario
             const inventoryElement = document.getElementById("stat-inventory");
@@ -302,8 +338,8 @@
                 });
             }
 
-            // Stampa testo (Sempre leggibile e statico)
-            document.getElementById("text-display").innerText = room.text;
+            // Applica la distorsione della pazzia sul testo se la sanità è bassa
+            document.getElementById("text-display").innerText = applyMadnessToText(room.text);
 
             // Rigenera Pulsanti Scelta
             const choicesContainer = document.getElementById("choices-container");
@@ -315,6 +351,12 @@
                 button.innerText = choice.text;
                 
                 button.addEventListener("click", () => {
+                    // ATTIVAZIONE AUDIO GESTITA SUL PRIMO INSERIMENTO INPUT (Aggira i blocchi browser)
+                    if (!audioStarted) {
+                        bgAudio.play().catch(e => console.log("Audio in attesa di interazione totale"));
+                        audioStarted = true;
+                    }
+
                     if (choice.action === "move") {
                         generateRandomRoom();
                     } else if (choice.action === "loot") {
@@ -323,6 +365,10 @@
                         }
                         room.choices = room.choices.filter(c => c.action !== "loot");
                         room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta abbandonata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
+                    } else if (choice.action === "madness_panic") {
+                        // Se clicchi sulla scelta folle perdi un sacco di sanità mentale!
+                        gameState.sanity -= 15;
+                        generateRandomRoom();
                     }
                     renderGame();
                 });
@@ -336,12 +382,10 @@
             renderGame();
         }
 
-        // Il glitch ora scuote SOLO il body (lo sfondo) e rimuove la classe dopo 1 secondo
         function triggerGlitchEffect(activate) {
             const body = document.getElementById("body-screen");
             if (activate) {
                 body.classList.add("glitch-bg");
-                // Rimuove l'animazione dopo che è terminata (1 secondo), così può essere riutilizzata
                 setTimeout(() => {
                     body.classList.remove("glitch-bg");
                 }, 1000);
@@ -363,6 +407,7 @@
                 gameState.sanity = 100;
                 gameState.inventory = [];
                 document.getElementById("body-screen").classList.remove("glitch-bg");
+                document.getElementById("body-screen").classList.remove("insane-bg");
                 generateRandomRoom();
                 renderGame();
             });
