@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE BACKROOMS: INFINITE DESCENT</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        :root {
+            --bg-yellow: #e2ce73;       
+            --shadow-yellow: #bfae59;   
+            --text-dark: #1f1d16;       
+            --terminal-red: #9e0000;    
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.07) 50%);
+            z-index: 10;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.3) 100%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #game-container {
+            max-width: 700px;
+            width: 100%;
+            border: 3px double var(--text-dark);
+            padding: 30px;
+            background-color: rgba(226, 206, 115, 0.95); 
+            backdrop-filter: blur(1px);
+            z-index: 20; 
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        #game-title {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            margin-top: 0;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            border-bottom: 3px double var(--text-dark);
+            padding-bottom: 10px;
+        }
+
+        #game-subtitle {
+            text-align: center;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            color: #57523d;
+        }
+
+        #status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--text-dark);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .stat-label { color: #5c553a; }
+        .stat-val { color: var(--text-dark); }
+
+        #inventory-container { display: flex; gap: 5px; align-items: center; }
+
+        .use-item-btn {
+            background: var(--text-dark);
+            color: var(--bg-yellow);
+            border: none;
+            padding: 2px 6px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+
+        .use-item-btn:hover { background: var(--terminal-red); color: #fff; }
+
+        #text-display {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            margin-bottom: 35px;
+            min-height: 180px;
+            white-space: pre-line;
+            font-weight: 600;
+        }
+
+        #choices-container { display: flex; flex-direction: column; gap: 14px; }
+
+        .choice-btn {
+            background-color: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--text-dark);
+            padding: 14px 20px;
+            font-family: inherit;
+            font-size: 1.05rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .choice-btn:hover {
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+            padding-left: 30px;
+        }
+
+        .choice-btn:hover::before { content: "> "; position: absolute; left: 12px; }
+
+        .glitch-bg { animation: shakeX 1s ease-in-out 1; }
+        .insane-bg { animation: shakeX 4s ease-in-out infinite; opacity: 0.95; }
+    </style>
+</head>
+<body id="body-screen">
+
+    <div id="game-container" class="animate__animated animate__fadeIn">
+        <div id="game-title">The Backrooms</div>
+        <div id="game-subtitle">Discesa Procedurale Infinita</div>
+
+        <div id="status-bar">
+            <div><span class="stat-label">STANZA:</span> <span id="stat-location" class="stat-val">#0</span></div>
+            <div><span class="stat-label">SANITA':</span> <span id="stat-sanity" class="stat-val">100%</span></div>
+            <div id="inventory-container"><span class="stat-label">ZAINO:</span> <span id="stat-inventory" class="stat-val">Vuoto</span></div>
+        </div>
+
+        <div id="text-display"></div>
+        <div id="choices-container"></div>
+    </div>
+
+    <script>
+        // CONFIGURAZIONE AUDIO CON LIBRERIA TONE.JS
+        let audioInitialized = false;
+        let noiseGenerator = null;
+        let filterEffect = null;
+
+        async function initAudio() {
+            if (audioInitialized) return;
+            
+            await Tone.start();
+            
+            noiseGenerator = new Tone.Noise("pink");
+            
+            filterEffect = new Tone.Filter({
+                type: "lowpass",
+                frequency: 200, 
+                Q: 2
+            });
+
+            // VOLUME AUMENTATO DEL 20% (Modificato da -22 a -18.3 per la scala logaritmica)
+            noiseGenerator.volume.value = -18.3; 
+
+            noiseGenerator.connect(filterEffect);
+            filterEffect.toDestination();
+            
+            noiseGenerator.start();
+            audioInitialized = true;
+            console.log("Tone.js inizializzato con volume aumentato.");
+        }
+
+        // STATO DEL GIOCO
+        let gameState = {
+            roomCount: 0,
+            sanity: 100,
+            inventory: [],
+            currentRoomData: {}
+        };
+
+        const roomTypes = [
+            "un corridoio ad angolo retto", "una stanza quadrata completamente vuota", 
+            "uno snodo a tre vie", "un immenso salone pilastrato", 
+            "un vicolo cieco claustrofobico", "una serie di uffici comunicanti senza porte"
+        ];
+
+        const wallDetails = [
+            "la carta da parati gialla si sta scollando, rivelando vecchie macchie di umidità.",
+            "le pareti sono modellate in un giallo accecante e uniforme che stordisce la vista.",
+            "qualcuno ha tracciato delle frecce sbiadite sul muro con un pennarello, ma girano in tondo.",
+            "la superficie della parete sembra quasi tremare se provi a guardarla con la coda dell'occhio."
+        ];
+
+        const floorDetails = [
+            "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
+            "l'odore acido di muffa e polvere emanato dal pavimento ti stringe la gola.",
+            "il pavimento di vecchio linoleum scricchiola pesantemente a ogni passo.",
+            "strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
+        ];
+
+        const neonDetails = [
+            "le luci al neon sopra di te emettono un ronzio elettrico costante e innaturale.",
+            "uno dei tubi al neon sfarfalla debolmente, proiettando ombre irregolari.",
+            "la luce è fissa, fredda e ingannevole, non capisci da dove arrivi la corrente.",
+            "il ronzio dei neon sembra risuonare direttamente nella tua scatola cranica."
+        ];
+
+        function applyMadnessToText(text) {
+            if (gameState.sanity >= 30) return text;
+            const glitchChars = ["§", "#", "Ø", "*", "!", "@", "æ", "¶", "??"];
+            let chars = text.split("");
+            for (let i = 0; i < chars.length; i++) {
+                if (Math.random() < 0.12 && chars[i] !== "\n" && chars[i] !== " ") {
+                    chars[i] = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }
+            }
+            return chars.join("");
+        }
+
+        function generateRandomRoom() {
+            gameState.roomCount++;
+            
+            const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
+            const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
+            const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
+            const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
+
+            // RIMOSSO "INTORNO A TE": La descrizione ora scorre in modo diretto e letterario
+            let roomText = `Ti inoltri in ${type}.\n\nOsservando i dettagli, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
+            let sanityImpact = 0;
+            let hasItem = false;
+
+            const randomEvent = Math.random();
+            if (randomEvent < 0.25) {
+                roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
+                hasItem = true;
+            } else if (randomEvent > 0.75) {
+                roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
+                sanityImpact = -15;
+            } else if (randomEvent > 0.65 && randomEvent <= 0.75) {
+                roomText += "\n\nAvverti un brivido improvviso. Oltre l'angolo cieco davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
+                sanityImpact = -20;
+            }
+
+            let choices = [
+                { text: "Prosegui lungo il percorso giallo", action: "move" },
+                { text: "Svolti l'angolo ed esplora la zona successiva", action: "move" }
+            ];
+
+            if (hasItem) {
+                choices.unshift({ text: "Raccogli l'Acqua Mandorlina", action: "loot" });
+            }
+
+            if (gameState.sanity < 30) {
+                const fakeChoices = [
+                    { text: "Girati di scatto. Qualcuno sta respirando sul tuo collo.", action: "madness_panic" },
+                    { text: "Gratta le pareti. C'è un'uscita dietro la carta da parati.", action: "madness_panic" },
+                    { text: "IL GIALLO. IL GIALLO. IL GIALLO.", action: "madness_panic" }
+                ];
+                choices.push(fakeChoices[Math.floor(Math.random() * fakeChoices.length)]);
+            }
+
+            gameState.currentRoomData = {
+                text: roomText,
+                sanityImpact: sanityImpact,
+                choices: choices
+            };
+        }
+
+        function renderGame() {
+            if (gameState.sanity <= 0) {
+                gameState.sanity = 0;
+                executeGameOver();
+                return;
+            }
+
+            const room = gameState.currentRoomData;
+            const body = document.getElementById("body-screen");
+
+            if (room.sanityImpact < 0) {
+                gameState.sanity += room.sanityImpact;
+                room.sanityImpact = 0; 
+                triggerGlitchEffect(true);
+                if (gameState.sanity <= 0) { renderGame(); return; }
+            } else if (gameState.sanity < 30) {
+                body.classList.add("insane-bg");
+                
+                // VOLUME SOTTO IL 30% ADATTATO PROPORZIONALMENTE (+20%)
+                if (audioInitialized && filterEffect) {
+                    filterEffect.frequency.rampTo(90, 0.5); 
+                    noiseGenerator.volume.rampTo(-11, 0.5);
+                }
+            } else {
+                body.classList.remove("insane-bg");
+                
+                if (audioInitialized && filterEffect) {
+                    filterEffect.frequency.rampTo(200, 0.5);
+                    noiseGenerator.volume.rampTo(-18.3, 0.5);
+                }
+            }
+
+            document.getElementById("stat-location").innerText = `#${gameState.roomCount}`;
+            
+            const sanityElement = document.getElementById("stat-sanity");
+            sanityElement.innerText = gameState.sanity + "%";
+            sanityElement.style.color = gameState.sanity < 30 ? "var(--terminal-red)" : "var(--text-dark)";
+
+            const inventoryElement = document.getElementById("stat-inventory");
+            if (gameState.inventory.length === 0) {
+                inventoryElement.innerText = "Vuoto";
+            } else {
+                inventoryElement.innerHTML = "";
+                gameState.inventory.forEach((item, index) => {
+                    const itemSpan = document.createElement("span");
+                    itemSpan.innerText = item;
+                    const useBtn = document.createElement("button");
+                    useBtn.innerText = "BEVI";
+                    useBtn.classList.add("use-item-btn");
+                    useBtn.addEventListener("click", () => useAlmondWater(index));
+                    itemSpan.appendChild(useBtn);
+                    inventoryElement.appendChild(itemSpan);
+                });
+            }
+
+            document.getElementById("text-display").innerText = applyMadnessToText(room.text);
+
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+
+            room.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.classList.add("choice-btn");
+                button.innerText = choice.text;
+                
+                button.addEventListener("click", () => {
+                    initAudio();
+
+                    if (choice.action === "move") {
+                        generateRandomRoom();
+                    } else if (choice.action === "loot") {
+                        if (!gameState.inventory.includes("Acqua Mandorlina")) {
+                            gameState.inventory.push("Acqua Mandorlina");
+                        }
+                        room.choices = room.choices.filter(c => c.action !== "loot");
+                        room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta abbandonata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
+                    } else if (choice.action === "madness_panic") {
+                        gameState.sanity -= 15;
+                        generateRandomRoom();
+                    }
+                    renderGame();
+                });
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        function useAlmondWater(index) {
+            gameState.inventory.splice(index, 1);
+            gameState.sanity = Math.min(gameState.sanity + 35, 100);
+            renderGame();
+        }
+
+        function triggerGlitchEffect(activate) {
+            const body = document.getElementById("body-screen");
+            if (activate) {
+                body.classList.add("glitch-bg");
+                setTimeout(() => { body.classList.remove("glitch-bg"); }, 1000);
+            }
+        }
+
+        function executeGameOver() {
+            if (audioInitialized && noiseGenerator) {
+                noiseGenerator.stop();
+                audioInitialized = false;
+            }
+
+            document.getElementById("body-screen").classList.add("glitch-bg");
+            document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
+            document.getElementById("text-display").innerText = `La tua mente ha ceduto dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl labirinto giallo ha cancellato i tuoi pensieri e la tua identità. Non stai più cercando un'uscita. Sei diventato parte delle Backrooms.`;
+            
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+            const restartBtn = document.createElement("button");
+            restartBtn.classList.add("choice-btn");
+            restartBtn.innerText = "Riavvia la simulazione (Ricomincia)";
+            restartBtn.addEventListener("click", () => {
+                gameState.roomCount = 0;
+                gameState.sanity = 100;
+                gameState.inventory = [];
+                document.getElementById("body-screen").classList.remove("glitch-bg");
+                document.getElementById("body-screen").classList.remove("insane-bg");
+                generateRandomRoom();
+                renderGame();
+            });
+            choicesContainer.appendChild(restartBtn);
+        }
+
+        generateRandomRoom();
+        renderGame();
+    </script>
+</body>
+</html>
