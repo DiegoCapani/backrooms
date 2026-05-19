@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 6)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 7)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- Inclusione di Tone.js per la stabilità audio cross-platform -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
         :root {
@@ -52,7 +54,7 @@
             pointer-events: none;
         }
 
-        /* SPLASH SCREEN INTERATTIVA (Risolve blocco Audio) */
+        /* SPLASH SCREEN INTERATTIVA */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -95,7 +97,7 @@
             box-shadow: 0 1px 0 #9c8e4b;
         }
 
-        /* VIEWPORT STRUTTURALE MOBILE-SAFE (No Overlap) */
+        /* VIEWPORT STRUTTURALE MOBILE-SAFE */
         #main-viewport {
             position: absolute;
             top: 0; bottom: 0; left: 0; right: 0;
@@ -119,9 +121,7 @@
             flex-direction: column;
         }
 
-        #header-area { 
-            flex-shrink: 0; 
-        }
+        #header-area { flex-shrink: 0; }
 
         #game-title {
             text-align: center;
@@ -172,7 +172,6 @@
             font-weight: bold;
         }
 
-        /* CASSETTA NARRATIVA AD ALTEZZA VARIABILE */
         #text-display {
             font-size: 0.95rem;
             line-height: 1.45;
@@ -189,7 +188,6 @@
         #text-display::-webkit-scrollbar { width: 4px; }
         #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
 
-        /* SCELTE ANCORATE ALLA BASE SENZA ESCURSIONE SULL'ASSE Y */
         #choices-container { 
             display: flex; 
             flex-direction: column; 
@@ -232,7 +230,6 @@
         .glitch-bg { animation: shakeX 1s ease-in-out 1; }
         .insane-bg { animation: shakeX 4s ease-in-out infinite; opacity: 0.95; }
 
-        /* Ottimizzazione schermi microscopici o landscape */
         @media (max-height: 520px) {
             #game-container { padding: 10px; }
             #game-subtitle { display: none; }
@@ -243,23 +240,23 @@
 </head>
 <body id="body-screen">
 
-    <!-- SPLASH SCREEN INTERFACCIA -->
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 style="font-size: 1.4rem; letter-spacing: 3px; margin-top: 0; color: var(--bg-yellow);">SIMULAZIONE AVVIATA</h1>
             <p style="font-size: 0.85rem; line-height: 1.6; text-align: left; color: #a49653;">
-                Il sistema audio a bassa frequenza e il rendering procedurale della struttura richiedono l'autorizzazione dell'utente.<br><br>
-                Premere il comando sottostante per stabilizzare la connessione e iniziare la discesa.
+                Il sistema audio procedurale basato su Tone.js richiede l'interazione dell'utente per inizializzare i sintetizzatori di sottofondo.<br><br>
+                Premi "ENTRA" per stabilizzare il segnale e iniziare l'esplorazione.
             </p>
             <button class="start-btn" onclick="initGame()">Entra</button>
         </div>
     </div>
 
-    <!-- MAIN VIEWPORT DI GIOCO -->
+    <!-- MAIN VIEWPORT -->
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0;">Build 6</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0;">Build 7</span></div>
                 <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
                 <div id="status-bar">
@@ -275,132 +272,92 @@
     </div>
 
     <script>
-        // CORE AUDIO WEB API - HARDENED VERSION (Build 6)
-        let audioCtx = null;
-        let droneOsc1 = null;
-        let droneOsc2 = null;
-        let masterGain = null;
-        let lowPassFilter = null;
-        let audioStarted = false;
+        // ARCHITETTURA AUDIO CON TONE.JS (Build 7)
+        let neonDrone = null;
+        let lowpassFilter = null;
+        let masterVolume = null;
+        let audioInitialized = false;
 
-        function startSoundscape() {
-            if (audioStarted) return;
-            
+        async function startToneAudio() {
+            if (audioInitialized) return;
+
             try {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContextClass) {
-                    console.error("Web Audio API non supportata.");
-                    return;
-                }
+                // Avvia esplicitamente il contesto audio di Tone.js legato al click dell'utente
+                await Tone.start();
                 
-                audioCtx = new AudioContextClass();
-                
-                // FIX SAFARI/iOS: Sblocca il canale audio riproducendo un micro-buffer vuoto istantaneo
-                const buffer = audioCtx.createBuffer(1, 1, 22050);
-                const node = audioCtx.createBufferSource();
-                node.buffer = buffer;
-                node.connect(audioCtx.destination);
-                node.start(0);
+                // Controllo volume master generale (-26dB per tenerlo come ronzio soffuso)
+                masterVolume = new Tone.Volume(-26).toDestination();
 
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+                // Filtro passa-basso cupo per tagliare le frequenze alte
+                lowpassFilter = new Tone.Filter({
+                    frequency: 130,
+                    type: "lowpass"
+                }).connect(masterVolume);
 
-                masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.04, audioCtx.currentTime); 
-                
-                droneOsc1 = audioCtx.createOscillator();
-                droneOsc1.type = 'sine';
-                droneOsc1.frequency.setValueAtTime(45, audioCtx.currentTime); 
-                
-                droneOsc2 = audioCtx.createOscillator();
-                droneOsc2.type = 'triangle';
-                droneOsc2.frequency.setValueAtTime(55, audioCtx.currentTime); 
-                
-                lowPassFilter = audioCtx.createBiquadFilter();
-                lowPassFilter.type = 'lowpass';
-                lowPassFilter.frequency.setValueAtTime(130, audioCtx.currentTime); 
+                // Oscillatore OmniOscillator (unione di Sine e Triangle a bassissima frequenza)
+                neonDrone = new Tone.OmniOscillator({
+                    frequency: 48,
+                    type: "triangle"
+                }).connect(lowpassFilter);
 
-                droneOsc1.connect(lowPassFilter);
-                droneOsc2.connect(lowPassFilter);
-                lowPassFilter.connect(masterGain);
-                masterGain.connect(audioCtx.destination);
+                // Avvio del ronzio continuo
+                neonDrone.start();
                 
-                droneOsc1.start(0);
-                droneOsc2.start(0);
-                
-                audioStarted = true;
-                console.log("Audio Engine Online. Stato:", audioCtx.state);
+                audioInitialized = true;
+                console.log("Tone.js Engine Online - Sblocco hardware riuscito.");
             } catch (error) {
-                console.error("Inizializzazione audio fallita in Build 6:", error);
+                console.error("Errore nell'inizializzazione di Tone.js:", error);
             }
         }
 
         function playProceduralHorrorSound() {
-            if (!audioStarted || !audioCtx) return;
-            
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioInitialized) return;
 
             const soundType = Math.floor(Math.random() * 3);
-            const now = audioCtx.currentTime;
 
             if (soundType === 0) {
-                // Passi asincroni
+                // PASSI PROCEDURALI ASINCRONI
+                const stepSynth = new Tone.MembraneSynth({
+                    envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 }
+                }).toDestination();
+                stepSynth.volume.value = -12;
+
+                let now = Tone.now();
                 for (let i = 0; i < 4; i++) {
-                    const stepTime = now + (i * 0.6);
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(60, stepTime);
-                    osc.frequency.exponentialRampToValueAtTime(30, stepTime + 0.1);
-                    gain.gain.setValueAtTime(0.08, stepTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, stepTime + 0.15);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(stepTime);
-                    osc.stop(stepTime + 0.2);
+                    stepSynth.triggerAttackRelease("C1", "8n", now + (i * 0.5));
                 }
             } else if (soundType === 1) {
-                // Impatto sordo
-                const osc = audioCtx.createOscillator();
-                const noiseGain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(65, now);
-                osc.frequency.linearRampToValueAtTime(30, now + 0.5);
-                noiseGain.gain.setValueAtTime(0.12, now);
-                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
-                osc.connect(noiseGain);
-                noiseGain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.7);
+                // IMPATTO SORDO DIETRO LE PARETI
+                const thudSynth = new Tone.MonoSynth({
+                    oscillator: { type: "sine" },
+                    filter: { Q: 1, type: "lowpass", frequency: 80 },
+                    envelope: { attack: 0.02, decay: 0.6, sustain: 0, release: 0.4 }
+                }).toDestination();
+                thudSynth.volume.value = -6;
+                thudSynth.triggerAttackRelease("E1", "2n");
             } else if (soundType === 2) {
-                // Scarica elettrica neon
-                for (let i = 0; i < 5; i++) {
-                    const glitchTime = now + (Math.random() * 0.2);
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(600 + Math.random() * 300, glitchTime);
-                    gain.gain.setValueAtTime(0.012, glitchTime);
-                    gain.gain.setValueAtTime(0, glitchTime + 0.02);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(glitchTime);
-                    osc.stop(glitchTime + 0.02);
+                // SCARICA ELETTRICA GLITCH NEON
+                const glitchSynth = new Tone.NoiseSynth({
+                    noise: { type: "pink" },
+                    envelope: { attack: 0.001, decay: 0.03, sustain: 0, release: 0.01 }
+                }).toDestination();
+                glitchSynth.volume.value = -18;
+
+                let now = Tone.now();
+                for (let i = 0; i < 6; i++) {
+                    glitchSynth.triggerAttack(now + (Math.random() * 0.3));
                 }
             }
         }
 
         function initGame() {
-            startSoundscape();
+            startToneAudio();
             document.getElementById("splash-screen").style.display = "none";
             generateRandomRoom();
             renderGame();
         }
 
-        // AGGREGATO STATO DI GIOCO
+        // STATO DI GIOCO REALE
         let gameState = {
             roomCount: 0,
             sanity: 100,
@@ -428,7 +385,7 @@
         ];
 
         const floorDetails = [
-            "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tuoi scarpe.",
+            "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
             "l'odore acido di muffa e polvere emanato dal pavimento ti stringe la gola.",
             "il pavimento di vecchio linoleum scricchiola pesantemente a ogni passo.",
             "strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
@@ -527,15 +484,15 @@
                 if (gameState.sanity <= 0) { renderGame(); return; }
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
-                if (masterGain && audioCtx && audioCtx.state === 'running') {
-                    masterGain.gain.linearRampToValueAtTime(0.09, audioCtx.currentTime + 0.5);
-                    lowPassFilter.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.5);
+                if (masterVolume && audioInitialized) {
+                    masterVolume.volume.rampTo(-18, 0.5); // Alza il volume del ronzio se impazzisce
+                    lowpassFilter.frequency.rampTo(90, 0.5); // Suono più chiuso e soffocante
                 }
             } else {
                 body.classList.remove("insane-bg");
-                if (masterGain && audioCtx && audioCtx.state === 'running') {
-                    masterGain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.5);
-                    lowPassFilter.frequency.linearRampToValueAtTime(130, audioCtx.currentTime + 0.5);
+                if (masterVolume && audioInitialized) {
+                    masterVolume.volume.rampTo(-26, 0.5);
+                    lowpassFilter.frequency.rampTo(130, 0.5);
                 }
             }
 
@@ -607,8 +564,10 @@
         }
 
         function executeGameOver() {
-            if (masterGain && audioCtx) masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            audioStarted = false;
+            if (neonDrone && audioInitialized) {
+                neonDrone.stop();
+            }
+            audioInitialized = false;
 
             document.getElementById("body-screen").classList.add("glitch-bg");
             document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
