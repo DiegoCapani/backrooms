@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 10)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 11)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -54,7 +54,7 @@
             pointer-events: none;
         }
 
-        /* SPLASH SCREEN INTERATTIVA - AGGIORNATA IN GIALLO COERENTE */
+        /* SPLASH SCREEN INTERATTIVA - GIALLA */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -173,7 +173,6 @@
             font-weight: bold;
         }
 
-        /* TEXT DISPLAY - INCREMENTATO DI 2 PUNTI PER LA LEGGIBILITÀ */
         #text-display {
             font-size: 1.1rem;
             line-height: 1.5;
@@ -205,7 +204,7 @@
             border: 2px solid var(--text-dark);
             padding: 12px;
             font-family: inherit;
-            font-size: 0.95rem; /* Incrementato leggermente per bilanciare il testo sopra */
+            font-size: 0.95rem;
             text-align: left;
             cursor: pointer;
             transition: all 0.1s ease;
@@ -242,7 +241,7 @@
 </head>
 <body id="body-screen">
 
-    <!-- SPLASH SCREEN SPECCHIATA IN GIALLO -->
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 style="font-size: 1.4rem; letter-spacing: 3px; margin-top: 0; color: var(--text-dark);">SIMULAZIONE AVVIATA</h1>
@@ -258,7 +257,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 10</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 11</span></div>
                 <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
                 <div id="status-bar">
@@ -274,32 +273,24 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE AUDIO - BUILD 10
+        // CONFIGURAZIONE AUDIO - BUILD 11
         let audioInitialized = false;
         let noiseGenerator = null;
         let filterEffect = null;
 
         async function initAudio() {
             if (audioInitialized) return;
-            
             try {
                 await Tone.start();
                 noiseGenerator = new Tone.Noise("pink");
-                filterEffect = new Tone.Filter({
-                    type: "lowpass",
-                    frequency: 200, 
-                    Q: 2
-                });
-
+                filterEffect = new Tone.Filter({ type: "lowpass", frequency: 200, Q: 2 });
                 noiseGenerator.volume.value = -12; 
                 noiseGenerator.connect(filterEffect);
                 filterEffect.toDestination();
-                
                 noiseGenerator.start();
                 audioInitialized = true;
-                console.log("Audio Build 10 inizializzato correttamente con Pink Noise.");
             } catch (e) {
-                console.error("Errore di inizializzazione audio:", e);
+                console.error("Errore audio:", e);
             }
         }
 
@@ -311,7 +302,7 @@
             currentRoomData: {}
         };
 
-        // MATRICE TRANSITORIA PROCEDURALE (INCIPIT)
+        // MATRICE DI SCRITTURA PROCEDURALE
         const movementTransitions = [
             "Superi la soglia e ti ritrovi in",
             "Svolti l'ennesimo angolo cieco, sbucando in",
@@ -356,6 +347,22 @@
             "Dalle lampade sospese proviene quel ronzio ossessivo che sembra risuonare direttamente nella tua scatola cranica."
         ];
 
+        // POOL DI SCELTE AMPLIATO E ULTRA-VARIATO
+        const movementChoicesPool = [
+            "Prosegui dritto lungo il percorso umido",
+            "Svolti bruscamente l'angolo cieco",
+            "Entra nella stanza di destra superando l'arco",
+            "Esplora lo stretto varco sul lato sinistro",
+            "Forza una porta di legno sbiadita (sembra bloccata)",
+            "Attraversa un'apertura quadrata nel cartongesso",
+            "Segui la fila di neon intermittenti verso il fondo",
+            "Allontanati dalla zona più buia camminando all'indietro",
+            "Infilati in una stretta fessura tra due pareti asimmetriche",
+            "Scendi tre gradini di cemento verso un livello ribassato",
+            "Segui le frecce sbiadite tracciate sul muro",
+            "Supera una porta tagliafuoco accostata"
+        ];
+
         function applyMadnessToText(text) {
             if (gameState.sanity >= 30) return text;
             const glitchChars = ["§", "#", "Ø", "*", "!", "@", "æ", "¶", "??"];
@@ -366,6 +373,12 @@
                 }
             }
             return chars.join("");
+        }
+
+        // Algoritmo di mescolamento per variare le scelte
+        function getRandomChoices(array, count) {
+            let shuffled = [...array].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
         }
 
         function generateRandomRoom() {
@@ -381,22 +394,24 @@
             let sanityImpact = 0;
             let hasItem = false;
 
+            // FIX 1: Genera acqua solo ed esclusivamente se lo zaino è vuoto
+            const hasWaterInInventory = gameState.inventory.includes("Acqua Mandorlina");
             const randomEvent = Math.random();
-            if (randomEvent < 0.25) {
+
+            if (randomEvent < 0.25 && !hasWaterInInventory) {
                 roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
                 hasItem = true;
             } else if (randomEvent > 0.75) {
                 roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
                 sanityImpact = -15;
             } else if (randomEvent > 0.65 && randomEvent <= 0.75) {
-                roomText += "\n\nAvverti un brivido improvviso. Oltre l'angolo cieco davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
+                roomText += "\n\nAvverti un brivido improvviso. Oltre la parete davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
                 sanityImpact = -20;
             }
 
-            let choices = [
-                { text: "Prosegui lungo il percorso giallo", action: "move" },
-                { text: "Svolti l'angolo ed esplora la zona successiva", action: "move" }
-            ];
+            // FIX 2: Selezione di 3 opzioni di movimento dinamiche e sempre diverse
+            const selectedTexts = getRandomChoices(movementChoicesPool, 3);
+            let choices = selectedTexts.map(text => ({ text: text, action: "move" }));
 
             if (hasItem) {
                 choices.unshift({ text: "Raccogli l'Acqua Mandorlina", action: "loot" });
@@ -437,14 +452,12 @@
                 if (gameState.sanity <= 0) { renderGame(); return; }
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
-                
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(90, 0.5); 
                     noiseGenerator.volume.rampTo(-6, 0.5);
                 }
             } else {
                 body.classList.remove("insane-bg");
-                
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(200, 0.5);
                     noiseGenerator.volume.rampTo(-12, 0.5);
@@ -523,7 +536,6 @@
                 noiseGenerator.stop();
                 audioInitialized = false;
             }
-
             document.getElementById("body-screen").classList.add("glitch-bg");
             document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
             document.getElementById("text-display").innerText = `La tua mente ha ceduto dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl labirinto giallo ha cancellato i tuoi pensieri e la tua identità. Non stai più cercando un'uscita. Sei diventato parte delle Backrooms.`;
