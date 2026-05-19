@@ -6,8 +6,6 @@
     <title>THE BACKROOMS: INFINITE DESCENT</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
         :root {
@@ -170,33 +168,117 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE AUDIO CON LIBRERIA TONE.JS
-        let audioInitialized = false;
-        let noiseGenerator = null;
-        let filterEffect = null;
+        // MOTORE AUDIO NATIVO RIPRISTINATO E POTENZIATO DEL 20%
+        let audioCtx = null;
+        let droneOsc1 = null;
+        let droneOsc2 = null;
+        let masterGain = null;
+        let lowPassFilter = null;
+        let audioStarted = false;
 
-        async function initAudio() {
-            if (audioInitialized) return;
+        function startSoundscape() {
+            if (audioStarted) return;
             
-            await Tone.start();
-            
-            noiseGenerator = new Tone.Noise("pink");
-            
-            filterEffect = new Tone.Filter({
-                type: "lowpass",
-                frequency: 200, 
-                Q: 2
-            });
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                masterGain = audioCtx.createGain();
+                // Volume di base ripristinato e incrementato del 20% (da 0.04 a 0.05)
+                masterGain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
+                
+                droneOsc1 = audioCtx.createOscillator();
+                droneOsc1.type = 'sine';
+                droneOsc1.frequency.setValueAtTime(45, audioCtx.currentTime); 
+                
+                droneOsc2 = audioCtx.createOscillator();
+                droneOsc2.type = 'triangle';
+                droneOsc2.frequency.setValueAtTime(55, audioCtx.currentTime); 
+                
+                lowPassFilter = audioCtx.createBiquadFilter();
+                lowPassFilter.type = 'lowpass';
+                lowPassFilter.frequency.setValueAtTime(150, audioCtx.currentTime); 
 
-            // VOLUME AUMENTATO DEL 20% (Modificato da -22 a -18.3 per la scala logaritmica)
-            noiseGenerator.volume.value = -18.3; 
+                droneOsc1.connect(lowPassFilter);
+                droneOsc2.connect(lowPassFilter);
+                lowPassFilter.connect(masterGain);
+                masterGain.connect(audioCtx.destination);
+                
+                droneOsc1.start();
+                droneOsc2.start();
+                
+                audioStarted = true;
+                console.log("Soundscape analogico ripristinato e potenziato.");
+            } catch (error) {
+                console.error("Errore nell'avvio dell'audio:", error);
+            }
+        }
 
-            noiseGenerator.connect(filterEffect);
-            filterEffect.toDestination();
-            
-            noiseGenerator.start();
-            audioInitialized = true;
-            console.log("Tone.js inizializzato con volume aumentato.");
+        // SINTETIZZATORE DI RUMORI AMBIENTALI PROCEDURALI
+        function playProceduralHorrorSound() {
+            if (!audioStarted || !audioCtx) return;
+
+            const soundType = Math.floor(Math.random() * 3); // 0: Passi, 1: Porta, 2: Neon Glitch
+            const now = audioCtx.currentTime;
+
+            if (soundType === 0) {
+                // 1. SINTEI PASSI (Piccoli tocchi cupi in sequenza)
+                console.log("[SFX] Passi sordi in lontananza...");
+                for (let i = 0; i < 4; i++) {
+                    const stepTime = now + (i * 0.6);
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(60, stepTime);
+                    osc.frequency.exponentialRampToValueAtTime(30, stepTime + 0.1);
+                    
+                    gain.gain.setValueAtTime(0.12, stepTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, stepTime + 0.15);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(stepTime);
+                    osc.stop(stepTime + 0.2);
+                }
+            } 
+            else if (soundType === 1) {
+                // 2. SINTESI PORTA CHE SBATTE (Colpo violento + riverbero sordo)
+                console.log("[SFX] Un forte sbatacchio echeggia nei corridoi.");
+                const osc = audioCtx.createOscillator();
+                const noiseGain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.4);
+                
+                noiseGain.gain.setValueAtTime(0.25, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                
+                osc.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.8);
+            } 
+            else if (soundType === 2) {
+                // 3. SINTESI NEON GLITCH (Crepitio elettrico ad alta frequenza)
+                console.log("[SFX] Un neon sfarfalla violentemente.");
+                for (let i = 0; i < 8; i++) {
+                    const glitchTime = now + (Math.random() * 0.3);
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(800 + Math.random() * 400, glitchTime);
+                    
+                    gain.gain.setValueAtTime(0.03, glitchTime);
+                    gain.gain.setValueAtTime(0, glitchTime + 0.02);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(glitchTime);
+                    osc.stop(glitchTime + 0.03);
+                }
+            }
         }
 
         // STATO DEL GIOCO
@@ -254,7 +336,6 @@
             const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
             const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
 
-            // RIMOSSO "INTORNO A TE": La descrizione ora scorre in modo diretto e letterario
             let roomText = `Ti inoltri in ${type}.\n\nOsservando i dettagli, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
             let sanityImpact = 0;
             let hasItem = false;
@@ -294,6 +375,13 @@
                 sanityImpact: sanityImpact,
                 choices: choices
             };
+
+            // MECCANICA DI CONTROLLO RUMORI CASUALI (35% di probabilità standard, 65% sotto la soglia di pazzia)
+            const soundThreshold = gameState.sanity < 30 ? 0.65 : 0.35;
+            if (Math.random() < soundThreshold && gameState.roomCount > 1) {
+                // Ritardiamo leggermente l'esecuzione per farla sentire durante o subito dopo la transizione di testo
+                setTimeout(playProceduralHorrorSound, 400);
+            }
         }
 
         function renderGame() {
@@ -314,17 +402,17 @@
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
                 
-                // VOLUME SOTTO IL 30% ADATTATO PROPORZIONALMENTE (+20%)
-                if (audioInitialized && filterEffect) {
-                    filterEffect.frequency.rampTo(90, 0.5); 
-                    noiseGenerator.volume.rampTo(-11, 0.5);
+                // EFFETTO PAZZIA SULL'AUDIO VECCHIO: Alziamo ulteriormente il volume e stringiamo il filtro passa-basso
+                if (masterGain && audioCtx) {
+                    masterGain.gain.linearRampToValueAtTime(0.09, audioCtx.currentTime + 0.5);
+                    lowPassFilter.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.5);
                 }
             } else {
                 body.classList.remove("insane-bg");
                 
-                if (audioInitialized && filterEffect) {
-                    filterEffect.frequency.rampTo(200, 0.5);
-                    noiseGenerator.volume.rampTo(-18.3, 0.5);
+                if (masterGain && audioCtx) {
+                    masterGain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
+                    lowPassFilter.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.5);
                 }
             }
 
@@ -362,7 +450,7 @@
                 button.innerText = choice.text;
                 
                 button.addEventListener("click", () => {
-                    initAudio();
+                    startSoundscape();
 
                     if (choice.action === "move") {
                         generateRandomRoom();
@@ -397,10 +485,8 @@
         }
 
         function executeGameOver() {
-            if (audioInitialized && noiseGenerator) {
-                noiseGenerator.stop();
-                audioInitialized = false;
-            }
+            if (masterGain && audioCtx) masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            audioStarted = false;
 
             document.getElementById("body-screen").classList.add("glitch-bg");
             document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
