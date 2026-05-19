@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 13)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 14)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -258,7 +258,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 13</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 14</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -274,7 +274,7 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE AUDIO - BUILD 13 (SINTESI PROCEDURALE HORROR)
+        // CONFIGURAZIONE AUDIO - BUILD 14
         let audioInitialized = false;
         let noiseGenerator = null;
         let filterEffect = null;
@@ -290,13 +290,12 @@
                 filterEffect.toDestination();
                 noiseGenerator.start();
                 audioInitialized = true;
-                console.log("Audio e motori sintetizzatori d'ambiente pronti.");
             } catch (e) {
                 console.error("Errore audio:", e);
             }
         }
 
-        // MOTORE DI SINTESI DEL SEGNALE CASUALE (SUONI HORROR)
+        // SINTESI PROCEDURALE AUDIO HORROR
         function playProceduralFootstep() {
             if (!audioInitialized) return;
             const lowFilter = new Tone.Filter(150, "lowpass").toDestination();
@@ -352,64 +351,78 @@
             currentRoomData: {}
         };
 
-        // MATRICE DI SCRITTURA PROCEDURALE
+        // MATRICE DI SCRITTURA PROCEDURALE ESPANSA (BUILD 14)
         const movementTransitions = [
-            "Superi la soglia e ti ritrovi in",
-            "Svolti l'ennesimo angolo cieco, sbucando in",
-            "I tuoi passi ti conducono all'interno di",
-            "Prosegui a tentoni finché lo spazio non si apre su",
-            "Cammini senza meta finché non entri in",
-            "Ti lasci alle spalle il corridoio precedente per penetrare in",
-            "Strisciando rasente la parete, accedi a",
-            "Avanzi stancamente, finendo dritto dentro",
-            "Il percorso si snoda bruscamente, rivelando",
-            "Oltrepassi una fessura nel muro e ti ritrovi in",
-            "Senza una reale direzione, scivoli dentro",
-            "Spingi lo sguardo in avanti mentre entri in"
+            "Superi la soglia e ti ritrovi in", "Svolti l'ennesimo angolo cieco, sbucando in",
+            "I tuoi passi ti conducono all'interno di", "Prosegui a tentoni finché lo spazio non si abre su",
+            "Cammini senza meta finché non entri in", "Ti lasci alle spalle il corridoio precedente per penetrare in",
+            "Strisciando rasente la parete, accedi a", "Avanzi stancamente, finendo dritto dentro",
+            "Il percorso si snoda bruscamente, rivelando", "Oltrepassi una fessura nel muro e ti ritrovi in"
         ];
 
         const roomTypes = [
             "un corridoio ad angolo retto.", "una stanza quadrata completamente vuota.", 
             "uno snodo a tre vie.", "un immenso salone pilastrato.", 
-            "un vicolo cieco claustrofobico.", "una serie di uffici comunicanti senza porte."
+            "un vicolo cieco claustrofobico.", "una serie di uffici comunicanti senza porte.",
+            "un disimpegno dal soffitto insolitamente basso.", "una diramazione simmetrica e opprimente."
         ];
 
         const wallDetails = [
-            "Le pareti circoscrittore mostrano una carta da parati gialla che si sta scollando, piena di vecchie macchie di umidità.",
-            "Tutto intorno, le superfici verticali sono modellate in un giallo accecante e uniforme che stordisce la vista.",
-            "Osservando i muri che ti racchiudono, noti che qualcuno ha tracciato delle frecce sbiadite con un pennarello, ma girano in tondo.",
-            "Lo sfondo visivo sembra quasi tremare se provi a fissare le pareti gialle con la coda dell'occhio.",
-            "La vista è saturata da quel monotono rivestimento giallastro che ricopre ogni singola parete.",
-            "I divisori di cartongesso ai lati appaiono asimmetrici, rivestiti della solita trama a parati ingiallita."
+            "Le pareti mostrano una carta da parati gialla che si sta scollando, piena di vecchie macchie.",
+            "Tutto intorno, le superfici verticali sono modellate in un giallo accecante e uniforme.",
+            "Osservando i muri, noti che qualcuno ha tracciato delle frecce sbiadite con un pennarello.",
+            "Lo sfondo visivo sembra quasi tremare se provi a fissare le pareti gialle.",
+            "I divisori di cartongesso ai lati appaiono asimmetrici, rivestiti della solita trama ingiallita."
         ];
 
         const floorDetails = [
-            "A terra, la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
-            "Il pavimento emana un odore acido di muffa e polvere che ti stringe la gola.",
+            "A terra, la moquette è zuppa e produce un fastidioso rumore bagnato.",
+            "Il pavimento emana un odore acido di muffa e polvere stantia.",
             "Sotto i piedi, il vecchio linoleum scricchiola pesantemente a ogni minimo passo.",
-            "Guardando in basso, strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
+            "Guardando in basso, strisce di moquette grigia sono state strappate via con violenza."
         ];
 
         const neonDetails = [
             "In alto, le luci al neon emettono un ronzio elettrico costante e innaturale.",
-            "Sopra la tua testa, uno dei tubi al neon sfarfalla debolmente, proiettando ombre irregolari.",
-            "La plafoniera sul soffitto emana una luce fissa, fredda e ingannevole; non si capisce da dove arrivi la corrente.",
-            "Dalle lampade sospese proviene quel ronzio ossessivo che sembra risuonare direttamente nella tua scatola cranica."
+            "Sopra la tua testa, uno dei tubi al neon sfarfalla proiettando ombre instabili.",
+            "La plafoniera sul soffitto emana una luce fissa, fredda e ingannevole.",
+            "Dalle lampade sospese proviene quel ronzio ossessivo che vibra nei timpani."
+        ];
+
+        // MATRICE DEGLI OGGETTI (100+ COMBINAZIONI PROCEDURALI)
+        const objectDetails = [
+            "Al centro dello spazio noti un mucchio di sedie per ufficio in plastica impilate e accatastate in modo precario.",
+            "Contro il lato del muro è appoggiata una vecchia scrivania in finto legno laminato, con i cassetti divelti.",
+            "Sul pavimento sono sparse decine di palline da ping pong bianche che si muovono impercettibilmente sulla moquette.",
+            "In un angolo giace uno schedario metallico arrugginito, con faldoni vuoti e bagnati sparsi intorno.",
+            "C'è un monitor CRT a tubo catodico posato a terra; lo schermo spento riflette in modo distorto il giallo dei neon.",
+            "Un distributore automatico di merendine vuoto e privo di vetrina è incassato in una rientranza strutturale.",
+            "Accanto a un pilastro si trova un ventilatore a piantana arrugginito, le cui pale girano lentissime senza produrre aria.",
+            "Vedi una fila di tre telefoni fissi a muro con i cavi intrecciati e tranciati di netto che pendono verso il pavimento.",
+            "A terra giace una lavagna bianca da conferenze coperta di indecifrabili calcoli e cancellature ossessive.",
+            "Una pianta finta in plastica, completamente coperta da uno spesso strato di polvere grigia, occupa un angolo morto.",
+            "Ci sono tre scatoloni di cartone bagnati accatastati; uno di essi è sfondato e rivela moduli cartacei completamente in bianco.",
+            "Un vecchio orologio analogico da parete è appeso storto; le lancette sono ferme, ma emette un ticchettio metallico intermittente.",
+            "Sul pavimento noti una pozzanghera scura circondata da bicchieri di plastica monouso schiacciati.",
+            "C'è un appendiabiti metallico isolato al centro della stanza, deformato come se fosse stato piegato a forza.",
+            "Un pallet di legno marcio blocca parzialmente il passaggio, costringendoti a girargli attorno.",
+            "Vedi una sedia a rotelle da ospedale abbandonata di traverso, con una ruota che gira ancora nel silenzio."
+        ];
+
+        // POOL DI AVVISTAMENTI RARI (SAGOME E FIGURE OSCURE)
+        const anomalyDetails = [
+            "Per una frazione di secondo, scorgi una sagoma umana scura e immobile infossata contro l'angolo del corridoio in fondo. Svanisce non appena provi a mettere a fuoco.",
+            "In lontananza, sul limitare della luce del neon, intravedi il profilo nero e distorto di un animale quadrupede che scivola silenzioso dietro una svolta.",
+            "Una silhouette antropomorfa completamente scura si staglia contro il riflesso della parete successiva. Rimane ferma,沒有 volto, prima di dissolversi nel nulla.",
+            "Dalla penombra della stanza adiacente spunta una figura umana scarna e scura; solleva un braccio verso di te prima che un neon sfarfalli, facendola sparire."
         ];
 
         const movementChoicesPool = [
-            "Prosegui dritto lungo il percorso umido",
-            "Svolti bruscamente l'angolo cieco",
-            "Entra nella stanza di destra superando l'arco",
-            "Esplora lo stretto varco sul lato sinistro",
-            "Forza una porta di legno sbiadita (sembra bloccata)",
-            "Attraversa un'apertura quadrata nel cartongesso",
-            "Segui la fila di neon intermittenti verso il fondo",
-            "Allontanati dalla zona più buia camminando all'indietro",
-            "Infilati in una stretta fessura tra due pareti asimmetriche",
-            "Scendi tre gradini di cemento verso un livello ribassato",
-            "Segui le frecce sbiadite tracciate sul muro",
-            "Supera una porta tagliafuoco accostata"
+            "Prosegui dritto lungo il percorso umido", "Svolti bruscamente l'angolo cieco",
+            "Entra nella stanza di destra superando l'arco", "Esplora lo stretto varco sul lato sinistro",
+            "Forza una porta di legno sbiadita (sembra bloccata)", "Attraversa un'apertura quadrata nel cartongesso",
+            "Segui la fila di neon intermittenti verso il fondo", "Allontanati dalla zona più buia camminando all'indietro",
+            "Infilati in una stretta fessura tra due pareti asimmetriche", "Supera una porta tagliafuoco accostata"
         ];
 
         function applyMadnessToText(text) {
@@ -437,44 +450,51 @@
             const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
             const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
             const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
+            const objectInfo = objectDetails[Math.floor(Math.random() * objectDetails.length)];
 
-            let roomText = `${transition} ${type}\n\n${wall} ${floor}\n\n${neon}`;
+            // COMPOSIZIONE BASE DELLA STANZA PROCEDURALE
+            let roomText = `${transition} ${type}\n\n${wall} ${floor} ${neon}\n\n${objectInfo}`;
             let sanityImpact = 0;
             let hasItem = false;
+            let triggeredAnomaly = false;
 
-            const hasWaterInInventory = gameState.inventory.includes("Acqua Mandorlina");
-            const randomEvent = Math.random();
-
-            if (randomEvent < 0.25 && !hasWaterInInventory) {
-                roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
-                hasItem = true;
-            } else if (randomEvent > 0.75) {
-                roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
-                sanityImpact = -15;
-            } else if (randomEvent > 0.65 && randomEvent <= 0.75) {
-                roomText += "\n\nAvverti un brivido improvviso. Oltre la parete davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
-                sanityImpact = -20;
+            // FIX RARI AVVISTAMENTI (7% PROBABILITÀ DI APPARIZIONE SAGOME)
+            if (gameState.roomCount > 1 && Math.random() < 0.07) {
+                const anomaly = anomalyDetails[Math.floor(Math.random() * anomalyDetails.length)];
+                roomText += `\n\n[ATTENZIONE]: ${anomaly}`;
+                sanityImpact = -25; // Forte colpo alla sanità mentale
+                triggeredAnomaly = true;
             }
 
-            // MOTORE HORROR: ATTIVAZIONE SUONI CASUALI MA RARI (20% DI PROBABILITÀ PER STANZA)
-            if (gameState.roomCount > 1 && Math.random() < 0.20) {
-                const soundType = Math.floor(Math.random() * 4);
-                setTimeout(() => {
-                    if (soundType === 0) {
-                        playProceduralFootstep();
-                        playProceduralFootstep();
-                        console.log("Audio Event: Passi sintetizzati nell'ombra.");
-                    } else if (soundType === 1) {
-                        playProceduralBreath();
-                        console.log("Audio Event: Respiro sintetizzato vicino.");
-                    } else if (soundType === 2) {
-                        playProceduralThud();
-                        console.log("Audio Event: Porta sbattuta sintetizzata in lontananza.");
-                    } else {
-                        playProceduralScreech();
-                        console.log("Audio Event: Eco di urlo sintetizzato.");
-                    }
-                }, 400); // Piccolo delay dall'ingresso per spiazzare il giocatore
+            // GESTIONE EVENTI STANDARD (SOLO SE NON C'È ANOMALIA VISIVA CRITICA)
+            if (!triggeredAnomaly) {
+                const hasWaterInInventory = gameState.inventory.includes("Acqua Mandorlina");
+                const randomEvent = Math.random();
+
+                if (randomEvent < 0.25 && !hasWaterInInventory) {
+                    roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
+                    hasItem = true;
+                } else if (randomEvent > 0.85) {
+                    roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
+                    sanityImpact = -15;
+                }
+            }
+
+            // MOTORE AUDIO HORROR ASSOCIATO AL MOVIMENTO COERENTE
+            if (gameState.roomCount > 1) {
+                const triggerChance = Math.random();
+                if (triggeredAnomaly) {
+                    // Se c'è la sagoma, spara un suono horror assicurato al 100%
+                    setTimeout(() => { Math.random() > 0.5 ? playProceduralBreath() : playProceduralScreech(); }, 300);
+                } else if (triggerChance < 0.18) {
+                    // Altrimenti normale spawn casuale raro di suoni d'ambiente
+                    const soundType = Math.floor(Math.random() * 3);
+                    setTimeout(() => {
+                        if (soundType === 0) { playProceduralFootstep(); playProceduralFootstep(); }
+                        else if (soundType === 1) { playProceduralThud(); }
+                        else { playProceduralBreath(); }
+                    }, 500);
+                }
             }
 
             const selectedTexts = getRandomChoices(movementChoicesPool, 3);
@@ -605,7 +625,7 @@
             }
             document.getElementById("body-screen").classList.add("glitch-bg");
             document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
-            document.getElementById("text-display").innerText = `La tua mente ha ceduto dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl labirinto giallo ha cancellato i tuoi pensieri e la tua identità. Non stai più cercando un'uscita. Sei diventato parte delle Backrooms.`;
+            document.getElementById("text-display").innerText = `La tua mente ha ceduto dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl labirinto giallo ha cancellato i tuoi pensieri e la tua identità e ti ha assimilato. Developed by Diego Capani.`;
             
             const choicesContainer = document.getElementById("choices-container");
             choicesContainer.innerHTML = "";
