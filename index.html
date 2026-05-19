@@ -6,6 +6,8 @@
     <title>THE BACKROOMS: INFINITE DESCENT</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
         :root {
@@ -33,7 +35,6 @@
             position: relative;
         }
 
-        /* Effetto VHS statico sullo sfondo */
         body::before {
             content: " ";
             display: block;
@@ -54,7 +55,6 @@
             pointer-events: none;
         }
 
-        /* Il contenitore rimane stabile e leggibile */
         #game-container {
             max-width: 700px;
             width: 100%;
@@ -149,16 +149,8 @@
 
         .choice-btn:hover::before { content: "> "; position: absolute; left: 12px; }
 
-        /* EFFETTI VISIVI DI PAZZIA SOLTANTO SULLO SFONDO */
-        .glitch-bg {
-            animation: shakeX 1s ease-in-out 1;
-        }
-
-        /* Quando la pazzia è costante sotto il 30% lo sfondo trema in modo continuo ma impercettibile */
-        .insane-bg {
-            animation: shakeX 4s ease-in-out infinite;
-            opacity: 0.95;
-        }
+        .glitch-bg { animation: shakeX 1s ease-in-out 1; }
+        .insane-bg { animation: shakeX 4s ease-in-out infinite; opacity: 0.95; }
     </style>
 </head>
 <body id="body-screen">
@@ -177,16 +169,40 @@
         <div id="choices-container"></div>
     </div>
 
-    <!-- Elemento Audio nascosto in loop -->
-    <audio id="horror-soundscape" loop>
-        <source src="https://assets.mixkit.co/active_storage/sfx/2567/2567-84.wav" type="audio/wav">
-    </audio>
-
     <script>
-        // CONFIGURAZIONE AUDIO
-        const bgAudio = document.getElementById("horror-soundscape");
-        bgAudio.volume = 0.15; // Volume di sottofondo basso e discreto
-        let audioStarted = false;
+        // CONFIGURAZIONE AUDIO CON LIBRERIA TONE.JS
+        let audioInitialized = false;
+        let noiseGenerator = null;
+        let filterEffect = null;
+
+        async function initAudio() {
+            if (audioInitialized) return;
+            
+            // Avvia il contesto audio della libreria esterna
+            await Tone.start();
+            
+            // Creiamo un generatore di rumore "pink" (più cupo e morbido del rumore bianco)
+            noiseGenerator = new Tone.Noise("pink");
+            
+            // Creiamo un filtro passa-basso per dare l'effetto di un ronzio sordo e soffocante
+            filterEffect = new Tone.Filter({
+                type: "lowpass",
+                frequency: 200, // Frequenza di taglio iniziale
+                Q: 2
+            });
+
+            // Configurazione volume generale (basso per sottofondo)
+            noiseGenerator.volume.value = -22; 
+
+            // Colleghiamo la catena audio esterna: Generatore -> Filtro -> Casse del PC
+            noiseGenerator.connect(filterEffect);
+            filterEffect.toDestination();
+            
+            // Avvia il loop audio continuo
+            noiseGenerator.start();
+            audioInitialized = true;
+            console.log("Tone.js inizializzato correttamente.");
+        }
 
         // STATO DEL GIOCO
         let gameState = {
@@ -213,7 +229,7 @@
             "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
             "l'odore acido di muffa e polvere emanato dal pavimento ti stringe la gola.",
             "il pavimento di vecchio linoleum scricchiola pesantemente a ogni passo.",
-            "strisce di moquette sono stato strappate via, lasciando intravedere il cemento grezzo."
+            "strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
         ];
 
         const neonDetails = [
@@ -223,11 +239,8 @@
             "il ronzio dei neon sembra risuonare direttamente nella tua scatola cranica."
         ];
 
-        // FUNZIONE PER GLITCHARE IL TESTO QUANDO LA SANITA' E' SOTTO IL 30%
         function applyMadnessToText(text) {
             if (gameState.sanity >= 30) return text;
-            
-            // Sostituisce circa il 12% dei caratteri con simboli distorti della follia
             const glitchChars = ["§", "#", "Ø", "*", "!", "@", "æ", "¶", "??"];
             let chars = text.split("");
             for (let i = 0; i < chars.length; i++) {
@@ -238,7 +251,6 @@
             return chars.join("");
         }
 
-        // GENERATORE PROCEDURALE DI STANZE
         function generateRandomRoom() {
             gameState.roomCount++;
             
@@ -256,7 +268,7 @@
                 roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
                 hasItem = true;
             } else if (randomEvent > 0.75) {
-                roomText += "\n\nIl ronzio visivo raddoppia d'intensità per un attimo. Un senso di vuoto assoluto ti colpisce lo stomaco.";
+                roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
                 sanityImpact = -15;
             } else if (randomEvent > 0.65 && randomEvent <= 0.75) {
                 roomText += "\n\nAvverti un brivido improvviso. Oltre l'angolo cieco davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
@@ -272,7 +284,6 @@
                 choices.unshift({ text: "Raccogli l'Acqua Mandorlina", action: "loot" });
             }
 
-            // MECCANICA DI PAZZIA: Aggiungi scelte folli e pericolose se sanità < 30%
             if (gameState.sanity < 30) {
                 const fakeChoices = [
                     { text: "Girati di scatto. Qualcuno sta respirando sul tuo collo.", action: "madness_panic" },
@@ -289,7 +300,6 @@
             };
         }
 
-        // MOTORE DI RENDERING
         function renderGame() {
             if (gameState.sanity <= 0) {
                 gameState.sanity = 0;
@@ -298,29 +308,38 @@
             }
 
             const room = gameState.currentRoomData;
-
-            // Gestione danni sanità e attivazione degli stati visivi dello sfondo
             const body = document.getElementById("body-screen");
+
             if (room.sanityImpact < 0) {
                 gameState.sanity += room.sanityImpact;
                 room.sanityImpact = 0; 
                 triggerGlitchEffect(true);
                 if (gameState.sanity <= 0) { renderGame(); return; }
             } else if (gameState.sanity < 30) {
-                // Sotto il 30% lo sfondo ha un tremolio continuo ma controllato
                 body.classList.add("insane-bg");
+                
+                // INTERAZIONE LIBRERIA AUDIO SOTTO IL 30%:
+                // Rendiamo il filtro molto più cupo (taglio a 90Hz) e alziamo il volume per creare ansia
+                if (audioInitialized && filterEffect) {
+                    filterEffect.frequency.rampTo(90, 0.5); 
+                    noiseGenerator.volume.rampTo(-15, 0.5);
+                }
             } else {
                 body.classList.remove("insane-bg");
+                
+                // Ripristino parametri standard dell'audio esterno se sani
+                if (audioInitialized && filterEffect) {
+                    filterEffect.frequency.rampTo(200, 0.5);
+                    noiseGenerator.volume.rampTo(-22, 0.5);
+                }
             }
 
-            // Aggiorna UI Barra di Stato
             document.getElementById("stat-location").innerText = `#${gameState.roomCount}`;
             
             const sanityElement = document.getElementById("stat-sanity");
             sanityElement.innerText = gameState.sanity + "%";
             sanityElement.style.color = gameState.sanity < 30 ? "var(--terminal-red)" : "var(--text-dark)";
 
-            // Gestione Inventario
             const inventoryElement = document.getElementById("stat-inventory");
             if (gameState.inventory.length === 0) {
                 inventoryElement.innerText = "Vuoto";
@@ -338,10 +357,8 @@
                 });
             }
 
-            // Applica la distorsione della pazzia sul testo se la sanità è bassa
             document.getElementById("text-display").innerText = applyMadnessToText(room.text);
 
-            // Rigenera Pulsanti Scelta
             const choicesContainer = document.getElementById("choices-container");
             choicesContainer.innerHTML = "";
 
@@ -351,11 +368,8 @@
                 button.innerText = choice.text;
                 
                 button.addEventListener("click", () => {
-                    // ATTIVAZIONE AUDIO GESTITA SUL PRIMO INSERIMENTO INPUT (Aggira i blocchi browser)
-                    if (!audioStarted) {
-                        bgAudio.play().catch(e => console.log("Audio in attesa di interazione totale"));
-                        audioStarted = true;
-                    }
+                    // ATTIVAZIONE DELLA LIBRERIA ESTERNA AL PRIMO CLICK DEL GIOCATORE
+                    initAudio();
 
                     if (choice.action === "move") {
                         generateRandomRoom();
@@ -366,7 +380,6 @@
                         room.choices = room.choices.filter(c => c.action !== "loot");
                         room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta abbandonata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
                     } else if (choice.action === "madness_panic") {
-                        // Se clicchi sulla scelta folle perdi un sacco di sanità mentale!
                         gameState.sanity -= 15;
                         generateRandomRoom();
                     }
@@ -386,13 +399,17 @@
             const body = document.getElementById("body-screen");
             if (activate) {
                 body.classList.add("glitch-bg");
-                setTimeout(() => {
-                    body.classList.remove("glitch-bg");
-                }, 1000);
+                setTimeout(() => { body.classList.remove("glitch-bg"); }, 1000);
             }
         }
 
         function executeGameOver() {
+            // Spegne il motore audio della libreria esterna al Game Over
+            if (audioInitialized && noiseGenerator) {
+                noiseGenerator.stop();
+                audioInitialized = false;
+            }
+
             document.getElementById("body-screen").classList.add("glitch-bg");
             document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
             document.getElementById("text-display").innerText = `La tua mente ha ceduto dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl labirinto giallo ha cancellato i tuoi pensieri e la tua identità. Non stai più cercando un'uscita. Sei diventato parte delle Backrooms.`;
@@ -414,7 +431,6 @@
             choicesContainer.appendChild(restartBtn);
         }
 
-        // Avvio immediato del primo livello procedurale
         generateRandomRoom();
         renderGame();
     </script>
