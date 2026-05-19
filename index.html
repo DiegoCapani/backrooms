@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 21)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 22)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -232,7 +232,6 @@
             font-weight: bold;
         }
 
-        /* RIDOTTO PER FARE SPAZIO AL VIDEO CONSERVA L'IMPATTO */
         #text-display {
             font-size: 1rem;
             line-height: 1.4;
@@ -251,36 +250,35 @@
         #text-display::-webkit-scrollbar { width: 4px; }
         #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
 
-        /* BOX CONTENITORE CAMERA LIVE CON EFFETTI HORROR */
+        /* BOX CONTENITORE CAMERA LIVE CON EFFETTI DISTORSIONE GIALLO/NERO */
         #camera-container {
             position: relative;
             width: 100%;
             flex-grow: 1;
             margin-bottom: 12px;
             border: 2px solid var(--text-dark);
-            background-color: #000;
+            background-color: #000000; /* Sfondo nero assoluto */
             overflow: hidden;
-            /* Sfocatura morbida gialla e ombra sui bordi esterni per fonderlo nella stanza */
-            box-shadow: 0 0 15px rgba(226, 206, 115, 0.6), inset 0 0 40px rgba(0,0,0,1);
+            box-shadow: 0 0 15px rgba(226, 206, 115, 0.4);
         }
 
         #camera-feed {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* Effetto specchio naturale */
+            transform: scaleX(-1); 
             
-            /* FILTRI BACKROOMS: Distorsione cromatica, saturazione degradata e tinta gialla acida */
-            filter: contrast(1.4) brightness(0.85) sepia(0.35) hue-rotate(-10deg) saturate(0.65);
-            opacity: 0.85;
+            /* FILTRO RADICALE: Contrasto estremo per abbattere lo sfondo in nero e viraggio totale su tonalità gialle acide */
+            filter: contrast(2.1) brightness(0.7) sepia(1) hue-rotate(15deg) saturate(1.4);
+            opacity: 0.9;
         }
 
-        /* Maschera di oscurità ai lati e sfumatura gialla interna al video (Effetto Torcia/Angoscia) */
+        /* Maschera visiva: sfuma il centro verso il nero, mentre i lati esterni diventano giallo coprente solidale alla stanza */
         #camera-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            background: radial-gradient(circle, transparent 25%, rgba(226, 206, 115, 0.15) 55%, rgba(0, 0, 0, 0.95) 90%);
+            background: radial-gradient(circle, transparent 20%, rgba(0, 0, 0, 0.85) 55%, var(--bg-yellow) 88%);
             z-index: 5;
         }
 
@@ -289,12 +287,12 @@
             position: absolute;
             top: 10px;
             left: 12px;
-            color: #fff;
+            color: #1f1d16;
             font-family: monospace;
             font-size: 0.75rem;
             font-weight: bold;
             z-index: 6;
-            text-shadow: 1px 1px 2px #000;
+            text-shadow: 1px 1px 0px rgba(226, 206, 115, 0.8);
             letter-spacing: 1px;
             display: flex;
             align-items: center;
@@ -304,7 +302,7 @@
         #rec-dot {
             width: 8px;
             height: 8px;
-            background-color: #ff0000;
+            background-color: #9e0000;
             border-radius: 50%;
             animation: blink 1s infinite;
         }
@@ -370,7 +368,7 @@
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 class="splash-title">THE BACKROOMS</h1>
-            <div class="splash-subtitle">INFINITE DESCENT (Build 21)</div>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 22)</div>
             
             <p style="font-size: 0.9rem; line-height: 1.5; text-align: left; color: #1f1d16; font-weight: bold; margin: 0 0 12px 0; border-left: 3px solid var(--terminal-red); padding-left: 10px;">
                 Non ricordi come sia successo. Un passo falso, uno scivolone fuori dalla realtà, e la consistenza stessa del mondo si è spezzata. Sei sprofondato qui. Un labirinto infinito di moquette umida, pareti gialle asettiche e l'ossessivo ronzio dei neon. Non c'è un'uscita logica. Questo sistema richiede l'accesso visivo ambientale per monitorare i tuoi parametri neuro-ottici.
@@ -391,7 +389,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 21</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 22</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -401,10 +399,9 @@
                 </div>
             </div>
 
-            <!-- DISCO CORTO DI DESCRIZIONE -->
             <div id="text-display"></div>
 
-            <!-- CAMERA LIVE BOX SYSTEM -->
+            <!-- CAMERA LIVE BOX SYSTEM V2 (DIRETTIVA GIALLO/NERO) -->
             <div id="camera-container">
                 <div id="camera-hud"><div id="rec-dot"></div><span>LIVE_FEED // RECOVERY_MODE</span></div>
                 <div id="camera-overlay"></div>
@@ -423,12 +420,11 @@
         let sirenLFO = null;
         let videoStream = null;
 
-        // ACCENSIONE VIDEOCAMERA FRONTALE DEL TELEFONO O PC
         async function startCamera() {
             const videoEl = document.getElementById('camera-feed');
             const constraints = {
                 video: {
-                    facingMode: "user", // Forza l'uso della fotocamera frontale (selfie)
+                    facingMode: "user", 
                     width: { ideal: 640 },
                     height: { ideal: 480 }
                 },
@@ -439,8 +435,7 @@
                 videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 videoEl.srcObject = videoStream;
             } catch (err) {
-                console.warn("Fotocamera rifiutata o non disponibile:", err);
-                // Fallback visivo se l'utente nega la telecamera (sfondo statico di disturbo)
+                console.warn("Fotocamera non disponibile:", err);
                 document.getElementById('camera-container').style.background = "linear-gradient(45deg, #1f1d16 25%, #111 25%, #111 50%, #1f1d16 50%, #1f1d16 75%, #111 75%)";
                 document.getElementById('camera-container').style.backgroundSize = "40px 40px";
             }
@@ -478,7 +473,7 @@
                 
                 audioInitialized = true;
             } catch (e) {
-                console.error("Errore audio initialization:", e);
+                console.error("Errore audio:", e);
             }
         }
 
@@ -497,7 +492,7 @@
             }
         }
 
-        // PROCEDURAL AUDIO POOL
+        // POOL EFFETTI PROCEDURALI AUDIO
         function playProceduralFootstep() {
             if (!audioInitialized) return;
             const lowFilter = new Tone.Filter(160, "lowpass").toDestination();
@@ -596,7 +591,7 @@
             osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 850);
         }
 
-        // LOOP GENERATION AUDIO INTEGRATI
+        // ALTRI EFFETTI S_ POOL INTEGRATI
         function playS_NeonOverload() { const osc = new Tone.Oscillator(120, "sawtooth").toDestination(); osc.volume.setValueAtTime(8, Tone.now()); osc.volume.linearRampToValueAtTime(-40, Tone.now() + 0.4); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 450); }
         function playS_IndustrialRelay() { const osc = new Tone.Oscillator(90, "triangle").toDestination(); osc.volume.setValueAtTime(10, Tone.now()); osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.05); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 100); }
         function playS_Infrasub() { const osc = new Tone.Oscillator(30, "sine").toDestination(); osc.volume.setValueAtTime(14, Tone.now()); osc.volume.linearRampToValueAtTime(-45, Tone.now() + 1.5); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1600); }
@@ -706,7 +701,7 @@
             "Una pianta finta coperta di polvere occupa un angolo morto.",
             "Ci sono scatoloni bagnati; uno rivela moduli in bianco.",
             "Un vecchio orologio è appeso storto, emettendo un ticchettio.",
-            "Sul pavimento noti una pozzanghera scura circondata da bicchieri.",
+            "Sul pavimento noti una pozzanghera scura circondata di bicchieri.",
             "C'è un appendiabiti metallico isolato, deformato a forza.",
             "Un pallet di legno marcio blocca parzialmente il passaggio.",
             "Vedi una sedia a rotelle abbandonata; una ruota gira ancora."
@@ -830,7 +825,7 @@
                 if (gameState.madness >= 100) { renderGame(); return; }
             }
 
-            // GESTIONE EFFETTI VISIVI TELECAMERA IN BASE ALLA FOLLIA
+            // GESTIONE DINAMICA FILTRI IN BASE ALLA FOLLIA
             if (gameState.madness >= 80) {
                 body.classList.add("insane-bg"); 
                 toggleSiren(true); 
@@ -838,8 +833,8 @@
                     filterEffect.frequency.rampTo(80, 0.5); 
                     noiseGenerator.volume.rampTo(-3, 0.5);
                 }
-                // Il video comincia a perdere frame e saturazione quando impazzisci
-                videoFeed.style.filter = "contrast(2) brightness(0.6) sepia(0.6) hue-rotate(-25deg) saturate(0.3) blur(1px)";
+                // Con follia alta lo schermo si distorce ancora di più diventando quasi monocromatico e sgranato
+                videoFeed.style.filter = "contrast(3) brightness(0.5) sepia(1) hue-rotate(-10deg) saturate(2) blur(2px)";
             } else {
                 body.classList.remove("insane-bg");
                 toggleSiren(false); 
@@ -847,7 +842,8 @@
                     filterEffect.frequency.rampTo(180, 0.5);
                     noiseGenerator.volume.rampTo(-15, 0.5);
                 }
-                videoFeed.style.filter = "contrast(1.4) brightness(0.85) sepia(0.35) hue-rotate(-10deg) saturate(0.65)";
+                // Filtro standard Build 22: contrasto alto (sfondo nero) e viraggio giallo
+                videoFeed.style.filter = "contrast(2.1) brightness(0.7) sepia(1) hue-rotate(15deg) saturate(1.4)";
             }
 
             document.getElementById("stat-location").innerText = `#${gameState.roomCount}`;
@@ -925,7 +921,6 @@
                 audioInitialized = false;
             }
             
-            // Spegne la camera al Game Over per simulare disconnessione hardware
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
             }
@@ -957,7 +952,7 @@
         function initGame() {
             enableFullscreen();
             initAudio();
-            startCamera(); // Avvia l'inizializzazione del flusso video AR
+            startCamera(); 
             document.getElementById("splash-screen").style.display = "none";
             generateRandomRoom();
             renderGame();
