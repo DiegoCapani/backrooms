@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 15)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 16)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -287,17 +287,16 @@
 </head>
 <body id="body-screen">
 
-    <!-- SPLASH SCREEN AGGIORNATA (BUILD 15) -->
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 class="splash-title">THE BACKROOMS</h1>
-            <div class="splash-subtitle">INFINITE DESCENT (Build 15)</div>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 16)</div>
             
             <p style="font-size: 0.9rem; line-height: 1.5; text-align: left; color: #3d392b; font-weight: bold; margin: 0 0 10px 0;">
                 Il sistema richiede l'interazione per inizializzare i sintetizzatori di frequenza d'ambiente e la sintonizzazione procedurale del segnale.
             </p>
 
-            <!-- RACCOMANDAZIONE CUFFIE CON ICONA STILIZZATA -->
             <div class="audio-alert">
                 <span class="audio-icon">[ 🎧 ]</span>
                 RACCOMANDAZIONE: Per un'esperienza immersiva e per percepire i segnali di minaccia nell'ombra, si raccomanda caldamente l'uso delle cuffie.
@@ -305,7 +304,6 @@
 
             <button class="start-btn" onclick="initGame()">Entra</button>
             
-            <!-- CREDITI FIRMA DI SVILUPPO -->
             <div class="developer-credits">Developed by Diego Capani</div>
         </div>
     </div>
@@ -314,7 +312,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 15</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 16</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -330,7 +328,7 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE AUDIO
+        // CONFIGURAZIONE AUDIO ELEVATA (VOLUME ALZATO - BUILD 16)
         let audioInitialized = false;
         let noiseGenerator = null;
         let filterEffect = null;
@@ -340,8 +338,8 @@
             try {
                 await Tone.start();
                 noiseGenerator = new Tone.Noise("pink");
-                filterEffect = new Tone.Filter({ type: "lowpass", frequency: 200, Q: 2 });
-                noiseGenerator.volume.value = -12; 
+                filterEffect = new Tone.Filter({ type: "lowpass", frequency: 180, Q: 1.5 });
+                noiseGenerator.volume.value = -14; // Ronzio di fondo attenuato per far risaltare i picchi dei jump-scare
                 noiseGenerator.connect(filterEffect);
                 filterEffect.toDestination();
                 noiseGenerator.start();
@@ -351,52 +349,166 @@
             }
         }
 
-        // SINTESI PROCEDURALE AUDIO HORROR
+        // ==========================================
+        // SISTEMA DI SINTESI PROCEDURALE AUDIO JUMP-SCARE
+        // ==========================================
+
         function playProceduralFootstep() {
             if (!audioInitialized) return;
-            const lowFilter = new Tone.Filter(150, "lowpass").toDestination();
+            const lowFilter = new Tone.Filter(160, "lowpass").toDestination();
             const noise = new Tone.Noise("pink").connect(lowFilter);
-            noise.volume.setValueAtTime(-10, Tone.now());
-            noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.15);
+            noise.volume.setValueAtTime(-2, Tone.now()); // ALZATO
+            noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.18);
             noise.start();
-            setTimeout(() => { noise.stop(); lowFilter.dispose(); noise.dispose(); }, 200);
+            setTimeout(() => { noise.stop(); lowFilter.dispose(); noise.dispose(); }, 250);
+        }
+
+        function playProceduralFastRunning() {
+            if (!audioInitialized) return;
+            let now = Tone.now();
+            // Genera una sequenza rapida e vicina di passi in corsa
+            for(let i = 0; i < 6; i++) {
+                setTimeout(() => {
+                    const lowFilter = new Tone.Filter(200, "lowpass").toDestination();
+                    const noise = new Tone.Noise("pink").connect(lowFilter);
+                    noise.volume.setValueAtTime(0, Tone.now()); 
+                    noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.1);
+                    noise.start();
+                    setTimeout(() => { noise.stop(); lowFilter.dispose(); noise.dispose(); }, 150);
+                }, i * 130);
+            }
+        }
+
+        function playProceduralDoorSlam() {
+            if (!audioInitialized) return;
+            // Rombazzo sordo d'impatto + riverbero metallico istantaneo
+            const osc = new Tone.Oscillator(60, "square").toDestination();
+            const filter = new Tone.Filter(120, "lowpass").toDestination();
+            const noise = new Tone.Noise("white").toDestination();
+            osc.connect(filter);
+            
+            osc.volume.setValueAtTime(4, Tone.now()); 
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.4);
+            noise.volume.setValueAtTime(-4, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.25);
+            
+            osc.start(); noise.start();
+            setTimeout(() => { osc.stop(); noise.stop(); osc.dispose(); filter.dispose(); noise.dispose(); }, 500);
+        }
+
+        function playProceduralGlassShatter() {
+            if (!audioInitialized) return;
+            const filter = new Tone.Filter(3500, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(2, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.3);
+            noise.start();
+            
+            // Piccolissimo trigger acuto disallineato per dare l'effetto dei frammenti
+            setTimeout(() => {
+                const osc = new Tone.Oscillator(2800, "sine").toDestination();
+                osc.volume.setValueAtTime(-6, Tone.now());
+                osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.1);
+                osc.start();
+                setTimeout(() => { osc.stop(); osc.dispose(); }, 150);
+            }, 50);
+
+            setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 400);
+        }
+
+        function playProceduralScream() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(580, "sawtooth").toDestination();
+            const filter = new Tone.Filter(1200, "bandpass").toDestination();
+            const dist = new Tone.Distortion(0.5).toDestination();
+            osc.connect(filter); filter.connect(dist);
+            
+            osc.frequency.setValueAtTime(580, Tone.now());
+            osc.frequency.linearRampToValueAtTime(750, Tone.now() + 0.4);
+            osc.volume.setValueAtTime(0, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.7);
+            
+            osc.start();
+            setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); dist.dispose(); }, 800);
         }
 
         function playProceduralBreath() {
             if (!audioInitialized) return;
-            const filter = new Tone.Filter(300, "bandpass").toDestination();
+            const filter = new Tone.Filter(400, "bandpass").toDestination();
             const noise = new Tone.Noise("white").connect(filter);
-            noise.volume.setValueAtTime(-45, Tone.now());
-            noise.volume.linearRampToValueAtTime(-15, Tone.now() + 0.6);
-            noise.volume.linearRampToValueAtTime(-45, Tone.now() + 1.4);
+            noise.volume.setValueAtTime(-15, Tone.now());
+            noise.volume.linearRampToValueAtTime(-2, Tone.now() + 0.4);
+            noise.volume.linearRampToValueAtTime(-35, Tone.now() + 1.1);
             noise.start();
-            setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 1500);
+            setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 1200);
+        }
+
+        function playProceduralCry() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(400, "triangle").toDestination();
+            const filter = new Tone.Filter(600, "bandpass").toDestination();
+            osc.connect(filter);
+            
+            osc.volume.setValueAtTime(-4, Tone.now());
+            osc.frequency.setValueAtTime(420, Tone.now());
+            osc.frequency.linearRampToValueAtTime(320, Tone.now() + 0.5);
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.9);
+            
+            osc.start();
+            setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 1000);
         }
 
         function playProceduralThud() {
             if (!audioInitialized) return;
-            const osc = new Tone.Oscillator(55, "sine").toDestination();
-            const lowFilter = new Tone.Filter(80, "lowpass").toDestination();
-            osc.connect(lowFilter);
-            osc.volume.setValueAtTime(0, Tone.now());
-            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.8);
-            osc.start();
-            setTimeout(() => { osc.stop(); lowFilter.dispose(); osc.dispose(); }, 900);
-        }
-
-        function playProceduralScreech() {
-            if (!audioInitialized) return;
-            const osc = new Tone.Oscillator(440, "sawtooth").toDestination();
-            const filter = new Tone.Filter(800, "bandpass").toDestination();
-            const dist = new Tone.Distortion(0.4).toDestination();
-            osc.connect(filter);
-            filter.connect(dist);
-            osc.frequency.setValueAtTime(380, Tone.now());
-            osc.frequency.linearRampToValueAtTime(520, Tone.now() + 0.5);
-            osc.volume.setValueAtTime(-18, Tone.now());
+            const osc = new Tone.Oscillator(45, "sine").toDestination();
+            osc.volume.setValueAtTime(6, Tone.now());
             osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.6);
             osc.start();
-            setTimeout(() => { osc.stop(); filter.dispose(); dist.dispose(); osc.dispose(); }, 700);
+            setTimeout(() => { osc.stop(); osc.dispose(); }, 700);
+        }
+
+        function playProceduralPhoneRing() {
+            if (!audioInitialized) return;
+            let now = Tone.now();
+            const osc1 = new Tone.Oscillator(440, "sine").toDestination();
+            const osc2 = new Tone.Oscillator(480, "sine").toDestination();
+            osc1.volume.setValueAtTime(-2, now);
+            osc2.volume.setValueAtTime(-2, now);
+            
+            osc1.start(); osc2.start();
+            
+            // Doppio squillo classico
+            setTimeout(() => { osc1.volume.setValueAtTime(-45, Tone.now()); osc2.volume.setValueAtTime(-45, Tone.now()); }, 200);
+            setTimeout(() => { osc1.volume.setValueAtTime(-2, Tone.now()); osc2.volume.setValueAtTime(-2, Tone.now()); }, 350);
+            setTimeout(() => { osc1.stop(); osc2.stop(); osc1.dispose(); osc2.dispose(); }, 600);
+        }
+
+        function playProceduralMetallicSound() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(120, "sawtooth").toDestination();
+            const filter = new Tone.Filter(2200, "highpass").toDestination();
+            osc.connect(filter);
+            osc.volume.setValueAtTime(0, Tone.now());
+            osc.volume.linearRampToValueAtTime(-40, Tone.now() + 0.8);
+            osc.start();
+            setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 900);
+        }
+
+        // DISPATCHER AUDIO RANDOM CON 10 CATEGORIE DIFFERENTI
+        function triggerRandomJumpScareSound() {
+            const index = Math.floor(Math.random() * 10);
+            switch(index) {
+                case 0: playProceduralFootstep(); break;
+                case 1: playProceduralFastRunning(); break;
+                case 2: playProceduralDoorSlam(); break;
+                case 3: playProceduralGlassShatter(); break;
+                case 4: playProceduralScream(); break;
+                case 5: playProceduralBreath(); break;
+                case 6: playProceduralCry(); break;
+                case 7: playProceduralThud(); break;
+                case 8: playProceduralPhoneRing(); break;
+                case 9: playProceduralMetallicSound(); break;
+            }
         }
 
         // STATO DEL GIOCO
@@ -413,7 +525,7 @@
             "I tuoi passi ti conducono all'interno di", "Prosegui a tentoni finché lo spazio non si apre su",
             "Cammini senza meta finché non entri in", "Ti lasci alle spalle il corridoio precedente per penetrare in",
             "Strisciando rasente la parete, accedi a", "Avanzi stancamente, finendo dritto dentro",
-            "Il percorso si snoda bruscamente, revealing", "Oltrepassi una fessura nel muro e ti ritrovi in"
+            "Il percorso si snoda bruscamente, rivelando", "Oltrepassi una fessura nel muro e ti ritrovi in"
         ];
 
         const roomTypes = [
@@ -456,16 +568,16 @@
             "Accanto a un pilastro si trova un ventilatore a piantana arrugginito, le cui pale girano lentissime senza produrre aria.",
             "Vedi una fila di tre telefoni fissi a muro con i cavi intrecciati e tranciati di netto che pendono verso il pavimento.",
             "A terra giace una lavagna bianca da conferenze coperta di indecifrabili calcoli e cancellature ossessive.",
-            "Una pianta finta in plastica, completamente coperta da uno esso strato di polvere grigia, occupa un angolo morto.",
+            "Una pianta finta in plastica, completamente coperta da uno spesso strato di polvere grigia, occupa un angolo morto.",
             "Ci sono tre scatoloni di cartone bagnati accatastati; uno di essi è sfondato e rivela moduli cartacei completamente in bianco.",
-            "Un vecchio orologio analogico da parete è appeso storto; le lancette sono ferme, ma emette un ticchettio metallico intermittente.",
+            "Un vecchio orologio analogico da parete è appeso storto; las lancette sono ferme, ma emette un ticchettio metallico intermittente.",
             "Sul pavimento noti una pozzanghera scura circondata da bicchieri di plastica monouso schiacciati.",
             "C'è un appendiabiti metallico isolato al centro della stanza, deformato come se fosse stato piegato a forza.",
             "Un pallet di legno marcio blocca parzialmente il passaggio, costringendoti a girargli attorno.",
             "Vedi una sedia a rotelle da ospedale abbandonata di traverso, con una ruota che gira ancora nel silenzio."
         ];
 
-        // POOL DI AVVISTAMENTI RARI
+        // POOL DI AVVISTAMENTI RARI (7%)
         const anomalyDetails = [
             "Per una frazione di secondo, scorgi una sagoma umana scura e immobile infossata contro l'angolo del corridoio in fondo. Svanisce non appena provi a mettere a fuoco.",
             "In lontananza, sul limitare della luce del neon, intravedi il profilo nero e distorto di un animale quadrupede che scivola silenzioso dietro una svolta.",
@@ -513,6 +625,7 @@
             let hasItem = false;
             let triggeredAnomaly = false;
 
+            // ANOMALIA VISIVA (7% PROBABILITÀ)
             if (gameState.roomCount > 1 && Math.random() < 0.07) {
                 const anomaly = anomalyDetails[Math.floor(Math.random() * anomalyDetails.length)];
                 roomText += `\n\n[ATTENZIONE]: ${anomaly}`;
@@ -533,18 +646,16 @@
                 }
             }
 
-            // TRIGGER AUDIO
+            // ==========================================
+            // GESTORE ATTIVAZIONE AUDIO (BUILD 16)
+            // ==========================================
             if (gameState.roomCount > 1) {
-                const triggerChance = Math.random();
                 if (triggeredAnomaly) {
-                    setTimeout(() => { Math.random() > 0.5 ? playProceduralBreath() : playProceduralScreech(); }, 300);
-                } else if (triggerChance < 0.18) {
-                    const soundType = Math.floor(Math.random() * 3);
-                    setTimeout(() => {
-                        if (soundType === 0) { playProceduralFootstep(); playProceduralFootstep(); }
-                        else if (soundType === 1) { playProceduralThud(); }
-                        else { playProceduralBreath(); }
-                    }, 500);
+                    // Se c'è un'apparizione visiva, forza l'urlo o il respiro immediato
+                    setTimeout(() => { Math.random() > 0.5 ? playProceduralBreath() : playProceduralScrecream(); }, 200);
+                } else if (Math.random() < 0.10) { 
+                    // 10% DI POSSIBILITÀ AD OGNI STANZA STANDARD DI SPARIRE UN JUMP-SCARE AUDIO CASUALE E AD ALTO VOLUME
+                    setTimeout(() => { triggerRandomJumpScareSound(); }, 400);
                 }
             }
 
@@ -591,14 +702,14 @@
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
                 if (audioInitialized && filterEffect && noiseGenerator) {
-                    filterEffect.frequency.rampTo(90, 0.5); 
-                    noiseGenerator.volume.rampTo(-6, 0.5);
+                    filterEffect.frequency.rampTo(80, 0.5); 
+                    noiseGenerator.volume.rampTo(-4, 0.5);
                 }
             } else {
                 body.classList.remove("insane-bg");
                 if (audioInitialized && filterEffect && noiseGenerator) {
-                    filterEffect.frequency.rampTo(200, 0.5);
-                    noiseGenerator.volume.rampTo(-12, 0.5);
+                    filterEffect.frequency.rampTo(180, 0.5);
+                    noiseGenerator.volume.rampTo(-14, 0.5);
                 }
             }
 
