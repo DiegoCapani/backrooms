@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 24)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 25)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -169,7 +169,7 @@
         #game-container {
             width: 100%;
             max-width: 640px;
-            height: 100%; 
+            height: 100%; /* Altezza rigorosamente fissa per evitare l'effetto fisarmonica */
             border: 3px double var(--text-dark);
             padding: 15px;
             background-color: rgba(226, 206, 115, 0.95); 
@@ -178,6 +178,7 @@
             box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* Impedisce al contenitore intero di stretcharsi */
         }
 
         #header-area { flex-shrink: 0; }
@@ -232,35 +233,37 @@
             font-weight: bold;
         }
 
-        /* AREA DI NARRAZIONE PRINCIPALE IN ALTO: Guadagna spazio verticale grazie alla riorganizzazione */
+        /* AREA NARRATIVA BLOCCATA CON SCROLLBAR INTERNA RIGIDA */
         #text-display {
-            font-size: 1.15rem; /* Aumentato di circa 2 punti rispetto al precedente 1rem (~16px -> ~18.5px) */
+            font-size: 1.15rem; 
             line-height: 1.45;
             margin-bottom: 15px;
-            padding-right: 5px;
+            padding-right: 8px;
             white-space: pre-line;
             font-weight: 600;
+            
+            flex: 1 1 auto; /* Occupa fluidamente l'area rimanente in alto */
+            overflow-y: scroll; /* Forza la presenza della barra di scorrimento laterale quando serve */
             scrollbar-width: thin;
             scrollbar-color: var(--text-dark) transparent;
-            
-            flex-grow: 1; /* Spinge via gli elementi sottostanti, occupando tutta l'altezza utile superiore */
-            overflow-y: auto;
         }
 
-        #text-display::-webkit-scrollbar { width: 4px; }
-        #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
+        #text-display::-webkit-scrollbar { width: 6px; }
+        #text-display::-webkit-scrollbar-track { background: transparent; }
+        #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); border-radius: 3px; }
 
-        /* BOX CONTENITORE CAMERA - POSIZIONATO IN BASSO, SOPRA I PULSANTI */
+        /* BOX CONTENITORE CAMERA - MODIFICATO IN QUADRATO (1:1) */
         #camera-container {
             position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            margin-bottom: 12px;
+            width: auto;
+            aspect-ratio: 1 / 1; /* Trasformazione in box quadrato */
+            max-height: 220px; /* Limite massimo per lasciare respiro a testo e pulsanti */
+            margin: 0 auto 12px auto; /* Centrato orizzontalmente */
             border: 2px solid var(--text-dark);
             background-color: #000000; 
             overflow: hidden;
             box-shadow: 0 0 15px rgba(226, 206, 115, 0.4);
-            flex-shrink: 0; /* Mantiene rigido il box 16:9 */
+            flex-shrink: 0; /* Rimane solido, non collassa mai */
         }
 
         #camera-feed {
@@ -272,13 +275,13 @@
             opacity: 0.95;
         }
 
-        /* MASCHERA PROSPETTICA AI LATI V3 */
+        /* MASCHERA PROSPETTICA ADATTATA AL QUADRATO */
         #camera-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             background: 
-                linear-gradient(90deg, #000000 0%, rgba(0, 0, 0, 0.95) 15%, transparent 35%, transparent 65%, rgba(0, 0, 0, 0.95) 85%, #000000 100%),
+                linear-gradient(90deg, #000000 0%, rgba(0, 0, 0, 0.95) 10%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.95) 90%, #000000 100%),
                 linear-gradient(135deg, rgba(0,0,0,0.9) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.9) 100%),
                 linear-gradient(225deg, rgba(0,0,0,0.9) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.9) 100%);
             z-index: 5;
@@ -286,11 +289,11 @@
 
         #camera-hud {
             position: absolute;
-            top: 10px;
-            left: 12px;
+            top: 8px;
+            left: 10px;
             color: #1f1d16;
             font-family: monospace;
-            font-size: 0.75rem;
+            font-size: 0.70rem;
             font-weight: bold;
             z-index: 6;
             text-shadow: 1px 1px 0px rgba(226, 206, 115, 0.8);
@@ -313,15 +316,14 @@
             50% { opacity: 0; }
         }
 
-        /* CONTENITORE PULSANTI SCELTA - ANCORATO IN BASSO */
+        /* CONTENITORE PULSANTI SCELTA ANCORATO SUL FONDO */
         #choices-container { 
             display: flex; 
             flex-direction: column; 
             gap: 6px; 
             justify-content: flex-end;
             width: 100%;
-            flex-shrink: 0; /* Impedisce che si riduca a discapito dei testi */
-            overflow-y: auto;
+            flex-shrink: 0; 
             padding-bottom: env(safe-area-inset-bottom, 0px); 
         }
 
@@ -331,7 +333,7 @@
             border: 2px solid var(--text-dark);
             padding: 12px;
             font-family: inherit;
-            font-size: 1.05rem; /* Aumentato di 2 punti rispetto al precedente 0.9rem */
+            font-size: 1.05rem; 
             text-align: left;
             cursor: pointer;
             transition: all 0.1s ease;
@@ -362,7 +364,7 @@
             #game-container { padding: 8px; }
             #game-subtitle { display: none; }
             #text-display { font-size: 1.0rem; margin-bottom: 6px; }
-            #camera-container { margin-bottom: 6px; }
+            #camera-container { max-height: 140px; margin-bottom: 6px; }
             .choice-btn { padding: 8px 10px; font-size: 0.9rem; }
         }
     </style>
@@ -373,7 +375,7 @@
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 class="splash-title">THE BACKROOMS</h1>
-            <div class="splash-subtitle">INFINITE DESCENT (Build 24)</div>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 25)</div>
             
             <p style="font-size: 0.9rem; line-height: 1.5; text-align: left; color: #1f1d16; font-weight: bold; margin: 0 0 12px 0; border-left: 3px solid var(--terminal-red); padding-left: 10px;">
                 Non ricordi come sia successo. Un passo falso, uno scivolone fuori dalla realtà, e la consistenza stessa del mondo si è spezzata. Sei sprofondato qui. Un labirinto infinito di moquette umida, pareti gialle asettiche e l'ossessivo ronzio dei neon. Non c'è un'uscita logica. Questo sistema richiede l'accesso visivo ambientale per monitorare i tuoi parametri neuro-ottici.
@@ -394,7 +396,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 24</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 25</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -404,12 +406,12 @@
                 </div>
             </div>
 
-            <!-- IL TESTO SOGGIORNA IN ALTO E CRESCE DINAMICAMENTE -->
+            <!-- IL TESTO SOGGIORNA IN ALTO ED HA UNA BARRA DI SCORRIMENTO RIGIDA -->
             <div id="text-display"></div>
 
-            <!-- LA CAMERA VIENE SPOSTATA IN BASSO, IMMEDIATAMENTE SOPRA LE SCELTE -->
+            <!-- CAMERA QUADRATA POSIZIONATA SOTTO IL TESTO -->
             <div id="camera-container">
-                <div id="camera-hud"><div id="rec-dot"></div><span>LIVE_FEED // PERSPECTIVE_TUNNEL</span></div>
+                <div id="camera-hud"><div id="rec-dot"></div><span>LIVE_FEED // FOCUS_1:1</span></div>
                 <div id="camera-overlay"></div>
                 <video id="camera-feed" autoplay playsinline muted></video>
             </div>
@@ -432,8 +434,8 @@
             const constraints = {
                 video: {
                     facingMode: "user", 
-                    width: { ideal: 640 },
-                    height: { ideal: 360 }
+                    width: { ideal: 480 },
+                    height: { ideal: 480 }
                 },
                 audio: false
             };
@@ -576,7 +578,7 @@
         function playProceduralThud() {
             if (!audioInitialized) return;
             const osc = new Tone.Oscillator(42, "sine").toDestination();
-            box = osc.volume.setValueAtTime(12, Tone.now()); osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.7);
+            osc.volume.setValueAtTime(12, Tone.now()); osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.7);
             osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 800);
         }
         function playProceduralPhoneRing() {
@@ -716,7 +718,7 @@
 
         const anomalyDetails = [
             "Scorgi una sagoma umana scura e immobile nell'angolo. Svanisce subito.",
-            "In lontananza intravedi il profilo nero di un essere quadrupede.",
+            "In lontananza intravedi il profil nero di un essere quadrupede.",
             "Una silhouette antropomorfa si staglia sul muro, poi si dissolve.",
             "Dalla penombra spunta una figura scarna; solleva un braccio e svanisce."
         ];
@@ -873,7 +875,9 @@
                 });
             }
 
-            document.getElementById("text-display").innerText = applyMadnessToText(room.text);
+            const textDisplay = document.getElementById("text-display");
+            textDisplay.innerText = applyMadnessToText(room.text);
+            textDisplay.scrollTop = 0; // Resetta lo scroll in alto a ogni stanza
 
             const choicesContainer = document.getElementById("choices-container");
             choicesContainer.innerHTML = "";
