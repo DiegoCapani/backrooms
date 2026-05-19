@@ -2,8 +2,8 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>THE BACKROOMS: INFINITE DESCENT (v0.3)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>THE BACKROOMS: INFINITE DESCENT (v0.5)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
@@ -19,28 +19,26 @@
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             background-color: var(--bg-yellow);
             color: var(--text-dark);
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            height: 100vh;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
             position: relative;
         }
 
+        /* Scanlines CRT & Vignette */
         body::before {
             content: " ";
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.07) 50%);
-            z-index: 10;
+            z-index: 999;
             background-size: 100% 4px;
             pointer-events: none;
         }
@@ -49,17 +47,70 @@
             content: "";
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.3) 100%);
-            z-index: 5;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.35) 100%);
+            z-index: 998;
             pointer-events: none;
         }
 
-        #game-container {
-            width: 96%;
-            max-width: 680px;
-            max-height: 94vh;
-            border: 3px double var(--text-dark);
+        /* SPLASH SCREEN INTERATTIVA (Risolve blocco Audio) */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
+            text-align: center;
+        }
+
+        #splash-container {
+            max-width: 500px;
+            border: 2px dashed var(--bg-yellow);
+            padding: 35px 25px;
+            background-color: #12110d;
+        }
+
+        .start-btn {
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
+            border: none;
+            padding: 16px 32px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 0 #9c8e4b;
+            transition: all 0.1s ease;
+            width: 100%;
+        }
+
+        .start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #9c8e4b;
+        }
+
+        /* VIEWPORT STRUTTURALE MOBILE-SAFE (No Overlap) */
+        #main-viewport {
+            position: absolute;
+            top: 0; bottom: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 640px;
+            height: 100%; /* Sfrutta al massimo lo spazio allocato dal Viewport */
+            border: 3px double var(--text-dark);
+            padding: 15px;
             background-color: rgba(226, 206, 115, 0.95); 
             backdrop-filter: blur(1px);
             z-index: 20; 
@@ -68,26 +119,27 @@
             flex-direction: column;
         }
 
+        #header-area { 
+            flex-shrink: 0; 
+        }
+
         #game-title {
             text-align: center;
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: bold;
-            letter-spacing: 3px;
-            margin-top: 0;
-            margin-bottom: 3px;
+            letter-spacing: 2px;
+            margin: 0;
             text-transform: uppercase;
             border-bottom: 3px double var(--text-dark);
-            padding-bottom: 8px;
-            flex-shrink: 0;
+            padding-bottom: 4px;
         }
 
         #game-subtitle {
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             letter-spacing: 1px;
-            margin-bottom: 15px;
+            margin: 4px 0 8px 0;
             color: #57523d;
-            flex-shrink: 0;
         }
 
         #status-bar {
@@ -95,11 +147,10 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px dashed var(--text-dark);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
             font-weight: bold;
-            font-size: 0.85rem;
-            flex-shrink: 0;
+            font-size: 0.8rem;
             flex-wrap: wrap;
             gap: 5px;
         }
@@ -113,26 +164,24 @@
             background: var(--text-dark);
             color: var(--bg-yellow);
             border: none;
-            padding: 1px 5px;
+            padding: 2px 6px;
             font-family: inherit;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             cursor: pointer;
             margin-left: 4px;
             font-weight: bold;
         }
 
-        .use-item-btn:hover, .use-item-btn:active { background: var(--terminal-red); color: #fff; }
-
+        /* CASSETTA NARRATIVA AD ALTEZZA VARIABILE */
         #text-display {
-            font-size: 1.05rem;
-            line-height: 1.5;
-            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            margin-bottom: 12px;
             flex-grow: 1;
             overflow-y: auto;
             padding-right: 5px;
             white-space: pre-line;
             font-weight: 600;
-            /* Scrollbar personalizzata per non rompere il look retro */
             scrollbar-width: thin;
             scrollbar-color: var(--text-dark) transparent;
         }
@@ -140,71 +189,93 @@
         #text-display::-webkit-scrollbar { width: 4px; }
         #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
 
+        /* SCELTE ANCORATE ALLA BASE SENZA ESCURSIONE SULL'ASSE Y */
         #choices-container { 
             display: flex; 
             flex-direction: column; 
-            gap: 10px; 
+            gap: 8px; 
             flex-shrink: 0;
+            width: 100%;
+            padding-bottom: env(safe-area-inset-bottom, 0px); /* Margine extra per schermi curvi/notch moderni */
         }
 
         .choice-btn {
             background-color: transparent;
             color: var(--text-dark);
             border: 2px solid var(--text-dark);
-            padding: 12px 15px;
+            padding: 12px;
             font-family: inherit;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             text-align: left;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.1s ease;
             position: relative;
             font-weight: bold;
             width: 100%;
             word-wrap: break-word;
         }
 
-        .choice-btn:hover, .choice-btn:active {
-            background-color: var(--text-dark);
-            color: var(--bg-yellow);
-            padding-left: 25px;
+        @media (hover: hover) {
+            .choice-btn:hover {
+                background-color: var(--text-dark);
+                color: var(--bg-yellow);
+                padding-left: 22px;
+            }
+            .choice-btn:hover::before { content: "> "; position: absolute; left: 8px; }
         }
 
-        .choice-btn:hover::before { content: "> "; position: absolute; left: 10px; }
+        .choice-btn:active {
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+        }
 
         .glitch-bg { animation: shakeX 1s ease-in-out 1; }
         .insane-bg { animation: shakeX 4s ease-in-out infinite; opacity: 0.95; }
 
-        /* REGOLE SPECIFICHE PER SCHERMI MOLTO PICCOLI (MOBILE PORTRAIT) */
-        @media (max-width: 480px) {
-            #game-container {
-                padding: 15px;
-                height: 96vh;
-            }
-            #game-title { font-size: 1.15rem; }
-            #text-display { font-size: 0.95rem; margin-bottom: 15px; }
-            .choice-btn { padding: 10px 12px; font-size: 0.85rem; }
-            #status-bar { font-size: 0.75rem; }
+        /* Media queries per ottimizzazione layout landscape stretto o schermi microscopici */
+        @media (max-height: 520px) {
+            #game-container { padding: 10px; }
+            #game-subtitle { display: none; }
+            #text-display { font-size: 0.85rem; margin-bottom: 6px; }
+            .choice-btn { padding: 8px 10px; font-size: 0.80rem; }
         }
     </style>
 </head>
 <body id="body-screen">
 
-    <div id="game-container" class="animate__animated animate__fadeIn">
-        <div id="game-title">The Backrooms <span style="font-size: 0.8rem; letter-spacing: 0;">v0.3</span></div>
-        <div id="game-subtitle">Discesa Procedurale Infinita</div>
-
-        <div id="status-bar">
-            <div><span class="stat-label">STANZA:</span> <span id="stat-location" class="stat-val">#0</span></div>
-            <div><span class="stat-label">SANITA':</span> <span id="stat-sanity" class="stat-val">100%</span></div>
-            <div id="inventory-container"><span class="stat-label">ZAINO:</span> <span id="stat-inventory" class="stat-val">Vuoto</span></div>
+    <!-- SPLASH SCREEN INTERFACCIA -->
+    <div id="splash-screen">
+        <div id="splash-container" class="animate__animated animate__fadeIn">
+            <h1 style="font-size: 1.4rem; letter-spacing: 3px; margin-top: 0; color: var(--bg-yellow);">SIMULAZIONE AVVIATA</h1>
+            <p style="font-size: 0.85rem; line-height: 1.6; text-align: left; color: #a49653;">
+                Il sistema audio a bassa frequenza e il rendering procedurale della struttura richiedono l'autorizzazione dell'utente.<br><br>
+                Premere il comando sottostante per stabilizzare la connessione e iniziare la discesa.
+            </p>
+            <button class="start-btn" onclick="initGame()">Entra</button>
         </div>
+    </div>
 
-        <div id="text-display"></div>
-        <div id="choices-container"></div>
+    <!-- MAIN VIEWPORT DI GIOCO -->
+    <div id="main-viewport">
+        <div id="game-container">
+            <div id="header-area">
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0;">v0.5</span></div>
+                <div id="game-subtitle">Discesa Procedurale Infinita</div>
+
+                <div id="status-bar">
+                    <div><span class="stat-label">STANZA:</span> <span id="stat-location" class="stat-val">#0</span></div>
+                    <div><span class="stat-label">SANITA':</span> <span id="stat-sanity" class="stat-val">100%</span></div>
+                    <div id="inventory-container"><span class="stat-label">ZAINO:</span> <span id="stat-inventory" class="stat-val">Vuoto</span></div>
+                </div>
+            </div>
+
+            <div id="text-display"></div>
+            <div id="choices-container"></div>
+        </div>
     </div>
 
     <script>
-        // ENGINE AUDIO NATIVO
+        // CORE AUDIO WEB API
         let audioCtx = null;
         let droneOsc1 = null;
         let droneOsc2 = null;
@@ -223,7 +294,7 @@
                 }
 
                 masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
+                masterGain.gain.setValueAtTime(0.04, audioCtx.currentTime); 
                 
                 droneOsc1 = audioCtx.createOscillator();
                 droneOsc1.type = 'sine';
@@ -235,7 +306,7 @@
                 
                 lowPassFilter = audioCtx.createBiquadFilter();
                 lowPassFilter.type = 'lowpass';
-                lowPassFilter.frequency.setValueAtTime(150, audioCtx.currentTime); 
+                lowPassFilter.frequency.setValueAtTime(140, audioCtx.currentTime); 
 
                 droneOsc1.connect(lowPassFilter);
                 droneOsc2.connect(lowPassFilter);
@@ -246,77 +317,73 @@
                 droneOsc2.start();
                 
                 audioStarted = true;
-                console.log("Drone analogico avviato correttamente.");
+                console.log("Audio Engine Online. Ronzio Neon attivato.");
             } catch (error) {
-                console.error("Impossibile avviare il comparto audio:", error);
+                console.error("Inizializzazione audio fallita:", error);
             }
         }
 
         function playProceduralHorrorSound() {
             if (!audioStarted || !audioCtx) return;
-
             const soundType = Math.floor(Math.random() * 3);
             const now = audioCtx.currentTime;
 
             if (soundType === 0) {
-                // PASSI IN LONTANANZA
+                // Passi asincroni
                 for (let i = 0; i < 4; i++) {
                     const stepTime = now + (i * 0.6);
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(60, stepTime);
                     osc.frequency.exponentialRampToValueAtTime(30, stepTime + 0.1);
-                    
-                    gain.gain.setValueAtTime(0.12, stepTime);
+                    gain.gain.setValueAtTime(0.1, stepTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, stepTime + 0.15);
-                    
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     osc.start(stepTime);
                     osc.stop(stepTime + 0.2);
                 }
-            } 
-            else if (soundType === 1) {
-                // PORTA CHE SBATTE
+            } else if (soundType === 1) {
+                // Impatto sordo
                 const osc = audioCtx.createOscillator();
                 const noiseGain = audioCtx.createGain();
-                
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(80, now);
-                osc.frequency.linearRampToValueAtTime(40, now + 0.4);
-                
-                noiseGain.gain.setValueAtTime(0.20, now);
-                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-                
+                osc.frequency.setValueAtTime(70, now);
+                osc.frequency.linearRampToValueAtTime(35, now + 0.5);
+                noiseGain.gain.setValueAtTime(0.15, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
                 osc.connect(noiseGain);
                 noiseGain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.8);
-            } 
-            else if (soundType === 2) {
-                // SFARFALLIO DEL NEON ACUTO
-                for (let i = 0; i < 6; i++) {
-                    const glitchTime = now + (Math.random() * 0.3);
+                osc.stop(now + 0.7);
+            } else if (soundType === 2) {
+                // Scarica elettrica neon
+                for (let i = 0; i < 5; i++) {
+                    const glitchTime = now + (Math.random() * 0.2);
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(700 + Math.random() * 300, glitchTime);
-                    
-                    gain.gain.setValueAtTime(0.02, glitchTime);
+                    osc.frequency.setValueAtTime(650 + Math.random() * 250, glitchTime);
+                    gain.gain.setValueAtTime(0.015, glitchTime);
                     gain.gain.setValueAtTime(0, glitchTime + 0.02);
-                    
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     osc.start(glitchTime);
-                    osc.stop(glitchTime + 0.03);
+                    osc.stop(glitchTime + 0.02);
                 }
             }
         }
 
-        // STATO DEL GIOCO
+        // TRIGGER DI ENTRATA DALLA SPLASH SCREEN
+        function initGame() {
+            startSoundscape();
+            document.getElementById("splash-screen").style.display = "none";
+            generateRandomRoom();
+            renderGame();
+        }
+
+        // AGGREGATO STATO DI GIOCO
         let gameState = {
             roomCount: 0,
             sanity: 100,
@@ -420,11 +487,13 @@
 
             const soundThreshold = gameState.sanity < 30 ? 0.25 : 0.10;
             if (Math.random() < soundThreshold && gameState.roomCount > 1) {
-                setTimeout(playProceduralHorrorSound, 500);
+                setTimeout(playProceduralHorrorSound, 400);
             }
         }
 
         function renderGame() {
+            if (gameState.roomCount === 0) return; 
+            
             if (gameState.sanity <= 0) {
                 gameState.sanity = 0;
                 executeGameOver();
@@ -441,17 +510,15 @@
                 if (gameState.sanity <= 0) { renderGame(); return; }
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
-                
                 if (masterGain && audioCtx) {
-                    masterGain.gain.linearRampToValueAtTime(0.09, audioCtx.currentTime + 0.5);
-                    lowPassFilter.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.5);
+                    masterGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.5);
+                    lowPassFilter.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.5);
                 }
             } else {
                 body.classList.remove("insane-bg");
-                
                 if (masterGain && audioCtx) {
-                    masterGain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
-                    lowPassFilter.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.5);
+                    masterGain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.5);
+                    lowPassFilter.frequency.linearRampToValueAtTime(140, audioCtx.currentTime + 0.5);
                 }
             }
 
@@ -479,7 +546,6 @@
             }
 
             document.getElementById("text-display").innerText = applyMadnessToText(room.text);
-            // Forza lo scroll in alto del box testuale quando cambia stanza
             document.getElementById("text-display").scrollTop = 0;
 
             const choicesContainer = document.getElementById("choices-container");
@@ -491,8 +557,6 @@
                 button.innerText = choice.text;
                 
                 button.addEventListener("click", () => {
-                    startSoundscape();
-
                     if (choice.action === "move") {
                         generateRandomRoom();
                     } else if (choice.action === "loot") {
@@ -500,7 +564,7 @@
                             gameState.inventory.push("Acqua Mandorlina");
                         }
                         room.choices = room.choices.filter(c => c.action !== "loot");
-                        room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta abbandonata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
+                        room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
                     } else if (choice.action === "madness_panic") {
                         gameState.sanity -= 15;
                         generateRandomRoom();
@@ -544,14 +608,10 @@
                 gameState.inventory = [];
                 document.getElementById("body-screen").classList.remove("glitch-bg");
                 document.getElementById("body-screen").classList.remove("insane-bg");
-                generateRandomRoom();
-                renderGame();
+                initGame();
             });
             choicesContainer.appendChild(restartBtn);
         }
-
-        generateRandomRoom();
-        renderGame();
     </script>
 </body>
 </html>
