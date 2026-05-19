@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 7)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 8)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -256,7 +256,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 7</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 8</span></div>
                 <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
                 <div id="status-bar">
@@ -272,7 +272,7 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE AUDIO RIPRISTINATA ORIGINALE
+        // CONFIGURAZIONE AUDIO - BUILD 8 (VOLUME POTENZIATO)
         let audioInitialized = false;
         let noiseGenerator = null;
         let filterEffect = null;
@@ -289,13 +289,14 @@
                     Q: 2
                 });
 
-                noiseGenerator.volume.value = -22; 
+                // VOLUME BOOSTED: Portato da -22 a -12 per un ronzio molto più presente
+                noiseGenerator.volume.value = -12; 
                 noiseGenerator.connect(filterEffect);
                 filterEffect.toDestination();
                 
                 noiseGenerator.start();
                 audioInitialized = true;
-                console.log("Audio Build 7 inizializzato correttamente con Pink Noise.");
+                console.log("Audio Build 8 inizializzato correttamente con Pink Noise (Volume Boosted).");
             } catch (e) {
                 console.error("Errore di inizializzazione audio:", e);
             }
@@ -309,7 +310,7 @@
             currentRoomData: {}
         };
 
-        // ALTERNATIVE PROCEDURALI PER SOSTITUIRE "TI INOLTRI IN"
+        // MATRICE TRANSITORIA PROCEDURALE
         const movementTransitions = [
             "Superi la soglia e ti ritrovi in",
             "Svolti l'ennesimo angolo cieco, sbucando in",
@@ -319,7 +320,7 @@
             "Ti lasci alle spalle il corridoio precedente per penetrare in",
             "Stisciando rasente la parete, accedi a",
             "Avanzi stancamente, finendo dritto dentro",
-            "Il percorso si snoda bruscamente, rivelando",
+            "Il percorso si snoda bruscamente, revealing",
             "Oltrepassi una fessura nel muro e ti ritrovi in",
             "Senza una reale direzione, scivoli dentro",
             "Spingi lo sguardo in avanti mentre entri in"
@@ -367,7 +368,6 @@
         function generateRandomRoom() {
             gameState.roomCount++;
             
-            // Selezione casuale della transizione di movimento per evitare ripetizioni
             const transition = movementTransitions[Math.floor(Math.random() * movementTransitions.length)];
             const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
             const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
@@ -435,16 +435,18 @@
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
                 
+                // VOLUME DINAMICO FOLLIA INCREMENTATO (da -15 a -6)
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(90, 0.5); 
-                    noiseGenerator.volume.rampTo(-15, 0.5);
+                    noiseGenerator.volume.rampTo(-6, 0.5);
                 }
             } else {
                 body.classList.remove("insane-bg");
                 
+                // RIPRISTINO VOLUME STANDARD INCREMENTATO (da -22 a -12)
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(200, 0.5);
-                    noiseGenerator.volume.rampTo(-22, 0.5);
+                    noiseGenerator.volume.rampTo(-12, 0.5);
                 }
             }
 
