@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (v0.5)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 6)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
@@ -108,7 +108,7 @@
         #game-container {
             width: 100%;
             max-width: 640px;
-            height: 100%; /* Sfrutta al massimo lo spazio allocato dal Viewport */
+            height: 100%; 
             border: 3px double var(--text-dark);
             padding: 15px;
             background-color: rgba(226, 206, 115, 0.95); 
@@ -196,7 +196,7 @@
             gap: 8px; 
             flex-shrink: 0;
             width: 100%;
-            padding-bottom: env(safe-area-inset-bottom, 0px); /* Margine extra per schermi curvi/notch moderni */
+            padding-bottom: env(safe-area-inset-bottom, 0px); 
         }
 
         .choice-btn {
@@ -232,7 +232,7 @@
         .glitch-bg { animation: shakeX 1s ease-in-out 1; }
         .insane-bg { animation: shakeX 4s ease-in-out infinite; opacity: 0.95; }
 
-        /* Media queries per ottimizzazione layout landscape stretto o schermi microscopici */
+        /* Ottimizzazione schermi microscopici o landscape */
         @media (max-height: 520px) {
             #game-container { padding: 10px; }
             #game-subtitle { display: none; }
@@ -259,7 +259,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0;">v0.5</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0;">Build 6</span></div>
                 <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
                 <div id="status-bar">
@@ -275,7 +275,7 @@
     </div>
 
     <script>
-        // CORE AUDIO WEB API
+        // CORE AUDIO WEB API - HARDENED VERSION (Build 6)
         let audioCtx = null;
         let droneOsc1 = null;
         let droneOsc2 = null;
@@ -287,8 +287,21 @@
             if (audioStarted) return;
             
             try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) {
+                    console.error("Web Audio API non supportata.");
+                    return;
+                }
                 
+                audioCtx = new AudioContextClass();
+                
+                // FIX SAFARI/iOS: Sblocca il canale audio riproducendo un micro-buffer vuoto istantaneo
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const node = audioCtx.createBufferSource();
+                node.buffer = buffer;
+                node.connect(audioCtx.destination);
+                node.start(0);
+
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
@@ -306,25 +319,30 @@
                 
                 lowPassFilter = audioCtx.createBiquadFilter();
                 lowPassFilter.type = 'lowpass';
-                lowPassFilter.frequency.setValueAtTime(140, audioCtx.currentTime); 
+                lowPassFilter.frequency.setValueAtTime(130, audioCtx.currentTime); 
 
                 droneOsc1.connect(lowPassFilter);
                 droneOsc2.connect(lowPassFilter);
                 lowPassFilter.connect(masterGain);
                 masterGain.connect(audioCtx.destination);
                 
-                droneOsc1.start();
-                droneOsc2.start();
+                droneOsc1.start(0);
+                droneOsc2.start(0);
                 
                 audioStarted = true;
-                console.log("Audio Engine Online. Ronzio Neon attivato.");
+                console.log("Audio Engine Online. Stato:", audioCtx.state);
             } catch (error) {
-                console.error("Inizializzazione audio fallita:", error);
+                console.error("Inizializzazione audio fallita in Build 6:", error);
             }
         }
 
         function playProceduralHorrorSound() {
             if (!audioStarted || !audioCtx) return;
+            
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
             const soundType = Math.floor(Math.random() * 3);
             const now = audioCtx.currentTime;
 
@@ -337,8 +355,8 @@
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(60, stepTime);
                     osc.frequency.exponentialRampToValueAtTime(30, stepTime + 0.1);
-                    gain.gain.setValueAtTime(0.1, stepTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, stepTime + 0.15);
+                    gain.gain.setValueAtTime(0.08, stepTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, stepTime + 0.15);
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     osc.start(stepTime);
@@ -349,9 +367,9 @@
                 const osc = audioCtx.createOscillator();
                 const noiseGain = audioCtx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(70, now);
-                osc.frequency.linearRampToValueAtTime(35, now + 0.5);
-                noiseGain.gain.setValueAtTime(0.15, now);
+                osc.frequency.setValueAtTime(65, now);
+                osc.frequency.linearRampToValueAtTime(30, now + 0.5);
+                noiseGain.gain.setValueAtTime(0.12, now);
                 noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
                 osc.connect(noiseGain);
                 noiseGain.connect(audioCtx.destination);
@@ -364,8 +382,8 @@
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(650 + Math.random() * 250, glitchTime);
-                    gain.gain.setValueAtTime(0.015, glitchTime);
+                    osc.frequency.setValueAtTime(600 + Math.random() * 300, glitchTime);
+                    gain.gain.setValueAtTime(0.012, glitchTime);
                     gain.gain.setValueAtTime(0, glitchTime + 0.02);
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
@@ -375,7 +393,6 @@
             }
         }
 
-        // TRIGGER DI ENTRATA DALLA SPLASH SCREEN
         function initGame() {
             startSoundscape();
             document.getElementById("splash-screen").style.display = "none";
@@ -411,7 +428,7 @@
         ];
 
         const floorDetails = [
-            "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
+            "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tuoi scarpe.",
             "l'odore acido di muffa e polvere emanato dal pavimento ti stringe la gola.",
             "il pavimento di vecchio linoleum scricchiola pesantemente a ogni passo.",
             "strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
@@ -485,7 +502,7 @@
                 choices: choices
             };
 
-            const soundThreshold = gameState.sanity < 30 ? 0.25 : 0.10;
+            const soundThreshold = gameState.sanity < 30 ? 0.35 : 0.15;
             if (Math.random() < soundThreshold && gameState.roomCount > 1) {
                 setTimeout(playProceduralHorrorSound, 400);
             }
@@ -510,15 +527,15 @@
                 if (gameState.sanity <= 0) { renderGame(); return; }
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
-                if (masterGain && audioCtx) {
-                    masterGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.5);
-                    lowPassFilter.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+                if (masterGain && audioCtx && audioCtx.state === 'running') {
+                    masterGain.gain.linearRampToValueAtTime(0.09, audioCtx.currentTime + 0.5);
+                    lowPassFilter.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.5);
                 }
             } else {
                 body.classList.remove("insane-bg");
-                if (masterGain && audioCtx) {
+                if (masterGain && audioCtx && audioCtx.state === 'running') {
                     masterGain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.5);
-                    lowPassFilter.frequency.linearRampToValueAtTime(140, audioCtx.currentTime + 0.5);
+                    lowPassFilter.frequency.linearRampToValueAtTime(130, audioCtx.currentTime + 0.5);
                 }
             }
 
