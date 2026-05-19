@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 8)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 10)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -54,12 +54,12 @@
             pointer-events: none;
         }
 
-        /* SPLASH SCREEN INTERATTIVA */
+        /* SPLASH SCREEN INTERATTIVA - AGGIORNATA IN GIALLO COERENTE */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--text-dark);
-            color: var(--bg-yellow);
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -71,14 +71,15 @@
 
         #splash-container {
             max-width: 500px;
-            border: 2px dashed var(--bg-yellow);
+            border: 2px dashed var(--text-dark);
             padding: 35px 25px;
-            background-color: #12110d;
+            background-color: rgba(226, 206, 115, 0.85);
+            backdrop-filter: blur(2px);
         }
 
         .start-btn {
-            background-color: var(--bg-yellow);
-            color: var(--text-dark);
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
             border: none;
             padding: 16px 32px;
             font-family: inherit;
@@ -87,14 +88,14 @@
             cursor: pointer;
             margin-top: 30px;
             text-transform: uppercase;
-            box-shadow: 0 5px 0 #9c8e4b;
+            box-shadow: 0 5px 0 #12110d;
             transition: all 0.1s ease;
             width: 100%;
         }
 
         .start-btn:active {
             transform: translateY(4px);
-            box-shadow: 0 1px 0 #9c8e4b;
+            box-shadow: 0 1px 0 #12110d;
         }
 
         /* VIEWPORT STRUTTURALE MOBILE-SAFE */
@@ -172,9 +173,10 @@
             font-weight: bold;
         }
 
+        /* TEXT DISPLAY - INCREMENTATO DI 2 PUNTI PER LA LEGGIBILITÀ */
         #text-display {
-            font-size: 0.95rem;
-            line-height: 1.45;
+            font-size: 1.1rem;
+            line-height: 1.5;
             margin-bottom: 12px;
             flex-grow: 1;
             overflow-y: auto;
@@ -203,7 +205,7 @@
             border: 2px solid var(--text-dark);
             padding: 12px;
             font-family: inherit;
-            font-size: 0.85rem;
+            font-size: 0.95rem; /* Incrementato leggermente per bilanciare il testo sopra */
             text-align: left;
             cursor: pointer;
             transition: all 0.1s ease;
@@ -233,18 +235,18 @@
         @media (max-height: 520px) {
             #game-container { padding: 10px; }
             #game-subtitle { display: none; }
-            #text-display { font-size: 0.85rem; margin-bottom: 6px; }
-            .choice-btn { padding: 8px 10px; font-size: 0.80rem; }
+            #text-display { font-size: 0.95rem; margin-bottom: 6px; }
+            .choice-btn { padding: 8px 10px; font-size: 0.85rem; }
         }
     </style>
 </head>
 <body id="body-screen">
 
-    <!-- SPLASH SCREEN -->
+    <!-- SPLASH SCREEN SPECCHIATA IN GIALLO -->
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
-            <h1 style="font-size: 1.4rem; letter-spacing: 3px; margin-top: 0; color: var(--bg-yellow);">SIMULAZIONE AVVIATA</h1>
-            <p style="font-size: 0.85rem; line-height: 1.6; text-align: left; color: #a49653;">
+            <h1 style="font-size: 1.4rem; letter-spacing: 3px; margin-top: 0; color: var(--text-dark);">SIMULAZIONE AVVIATA</h1>
+            <p style="font-size: 0.95rem; line-height: 1.6; text-align: left; color: #3d392b; font-weight: bold;">
                 Il sistema audio procedurale richiede l'interazione dell'utente per inizializzare i sintetizzatori di sottofondo.<br><br>
                 Premi "ENTRA" per stabilizzare il segnale e iniziare l'esplorazione.
             </p>
@@ -256,7 +258,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 8</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 10</span></div>
                 <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
                 <div id="status-bar">
@@ -272,7 +274,7 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE AUDIO - BUILD 8 (VOLUME POTENZIATO)
+        // CONFIGURAZIONE AUDIO - BUILD 10
         let audioInitialized = false;
         let noiseGenerator = null;
         let filterEffect = null;
@@ -289,14 +291,13 @@
                     Q: 2
                 });
 
-                // VOLUME BOOSTED: Portato da -22 a -12 per un ronzio molto più presente
                 noiseGenerator.volume.value = -12; 
                 noiseGenerator.connect(filterEffect);
                 filterEffect.toDestination();
                 
                 noiseGenerator.start();
                 audioInitialized = true;
-                console.log("Audio Build 8 inizializzato correttamente con Pink Noise (Volume Boosted).");
+                console.log("Audio Build 10 inizializzato correttamente con Pink Noise.");
             } catch (e) {
                 console.error("Errore di inizializzazione audio:", e);
             }
@@ -310,7 +311,7 @@
             currentRoomData: {}
         };
 
-        // MATRICE TRANSITORIA PROCEDURALE
+        // MATRICE TRANSITORIA PROCEDURALE (INCIPIT)
         const movementTransitions = [
             "Superi la soglia e ti ritrovi in",
             "Svolti l'ennesimo angolo cieco, sbucando in",
@@ -318,39 +319,41 @@
             "Prosegui a tentoni finché lo spazio non si apre su",
             "Cammini senza meta finché non entri in",
             "Ti lasci alle spalle il corridoio precedente per penetrare in",
-            "Stisciando rasente la parete, accedi a",
+            "Strisciando rasente la parete, accedi a",
             "Avanzi stancamente, finendo dritto dentro",
-            "Il percorso si snoda bruscamente, revealing",
+            "Il percorso si snoda bruscamente, rivelando",
             "Oltrepassi una fessura nel muro e ti ritrovi in",
             "Senza una reale direzione, scivoli dentro",
             "Spingi lo sguardo in avanti mentre entri in"
         ];
 
         const roomTypes = [
-            "un corridoio ad angolo retto", "una stanza quadrata completamente vuota", 
-            "uno snodo a tre vie", "un immenso salone pilastrato", 
-            "un vicolo cieco claustrofobico", "una serie di uffici comunicanti senza porte"
+            "un corridoio ad angolo retto.", "una stanza quadrata completamente vuota.", 
+            "uno snodo a tre vie.", "un immenso salone pilastrato.", 
+            "un vicolo cieco claustrofobico.", "una serie di uffici comunicanti senza porte."
         ];
 
         const wallDetails = [
-            "la carta da parati gialla si sta scollando, rivelando vecchie macchie di umidità.",
-            "le pareti sono modellate in un giallo accecante e uniforme che stordisce la vista.",
-            "qualcuno ha tracciato delle frecce sbiadite sul muro con un pennarello, ma girano in tondo.",
-            "la superficie della parete sembra quasi tremare se provi a guardarla con la coda dell'occhio."
+            "Le pareti circoscrittore mostrano una carta da parati gialla che si sta scollando, piena di vecchie macchie di umidità.",
+            "Tutto intorno, le superfici verticali sono modellate in un giallo accecante e uniforme che stordisce la vista.",
+            "Osservando i muri che ti racchiudono, noti che qualcuno ha tracciato delle frecce sbiadite con un pennarello, ma girano in tondo.",
+            "Lo sfondo visivo sembra quasi tremare se provi a fissare le pareti gialle con la coda dell'occhio.",
+            "La vista è saturata da quel monotono rivestimento giallastro che ricopre ogni singola parete.",
+            "I divisori di cartongesso ai lati appaiono asimmetrici, rivestiti della solita trama a parati ingiallita."
         ];
 
         const floorDetails = [
-            "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
-            "l'odore acido di muffa e polvere emanato dal pavimento ti stringe la gola.",
-            "il pavimento di vecchio linoleum scricchiola pesantemente a ogni passo.",
-            "strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
+            "A terra, la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
+            "Il pavimento emana un odore acido di muffa e polvere che ti stringe la gola.",
+            "Sotto i piedi, il vecchio linoleum scricchiola pesantemente a ogni minimo passo.",
+            "Guardando in basso, strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
         ];
 
         const neonDetails = [
-            "le luci al neon sopra di te emettono un ronzio elettrico costante e innaturale.",
-            "uno dei tubi al neon sfarfalla debolmente, proiettando ombre irregolari.",
-            "la luce è fissa, fredda e ingannevole, non capisci da dove arrivi la corrente.",
-            "il ronzio dei neon sembra risuonare direttamente nella tua scatola cranica."
+            "In alto, le luci al neon emettono un ronzio elettrico costante e innaturale.",
+            "Sopra la tua testa, uno dei tubi al neon sfarfalla debolmente, proiettando ombre irregolari.",
+            "La plafoniera sul soffitto emana una luce fissa, fredda e ingannevole; non si capisce da dove arrivi la corrente.",
+            "Dalle lampade sospese proviene quel ronzio ossessivo che sembra risuonare direttamente nella tua scatola cranica."
         ];
 
         function applyMadnessToText(text) {
@@ -374,7 +377,7 @@
             const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
             const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
 
-            let roomText = `${transition} ${type}.\n\nIntorno a te, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
+            let roomText = `${transition} ${type}\n\n${wall} ${floor}\n\n${neon}`;
             let sanityImpact = 0;
             let hasItem = false;
 
@@ -435,7 +438,6 @@
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
                 
-                // VOLUME DINAMICO FOLLIA INCREMENTATO (da -15 a -6)
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(90, 0.5); 
                     noiseGenerator.volume.rampTo(-6, 0.5);
@@ -443,7 +445,6 @@
             } else {
                 body.classList.remove("insane-bg");
                 
-                // RIPRISTINO VOLUME STANDARD INCREMENTATO (da -22 a -12)
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(200, 0.5);
                     noiseGenerator.volume.rampTo(-12, 0.5);
