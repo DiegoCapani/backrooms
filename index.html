@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 22)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 23)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -250,16 +250,17 @@
         #text-display::-webkit-scrollbar { width: 4px; }
         #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
 
-        /* BOX CONTENITORE CAMERA LIVE CON EFFETTI DISTORSIONE GIALLO/NERO */
+        /* BOX CONTENITORE CAMERA - RAPPORTO DI FORMA CINEMATICO 16:9 */
         #camera-container {
             position: relative;
             width: 100%;
-            flex-grow: 1;
+            aspect-ratio: 16 / 9; /* Forza il box in 16:9 occupando meno spazio in altezza */
             margin-bottom: 12px;
             border: 2px solid var(--text-dark);
-            background-color: #000000; /* Sfondo nero assoluto */
+            background-color: #000000; 
             overflow: hidden;
             box-shadow: 0 0 15px rgba(226, 206, 115, 0.4);
+            flex-shrink: 0; /* Impedisce al flexbox di deformare il rapporto d'aspetto */
         }
 
         #camera-feed {
@@ -268,17 +269,20 @@
             object-fit: cover;
             transform: scaleX(-1); 
             
-            /* FILTRO RADICALE: Contrasto estremo per abbattere lo sfondo in nero e viraggio totale su tonalità gialle acide */
-            filter: contrast(2.1) brightness(0.7) sepia(1) hue-rotate(15deg) saturate(1.4);
-            opacity: 0.9;
+            /* Filtro bilanciato: contrasto aumentato per scurire lo sfondo reale e far risaltare la faccia virata sul giallo */
+            filter: contrast(2.3) brightness(0.65) sepia(1) hue-rotate(12deg) saturate(1.5);
+            opacity: 0.95;
         }
 
-        /* Maschera visiva: sfuma il centro verso il nero, mentre i lati esterni diventano giallo coprente solidale alla stanza */
+        /* MASCHERA VISIVA PROSPETTICA: Taglio geometrico a corridoio. Sfuma in nero puro ai lati, stringendosi verso il centro */
         #camera-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            background: radial-gradient(circle, transparent 20%, rgba(0, 0, 0, 0.85) 55%, var(--bg-yellow) 88%);
+            background: 
+                linear-gradient(90deg, #000000 0%, rgba(0, 0, 0, 0.95) 15%, transparent 35%, transparent 65%, rgba(0, 0, 0, 0.95) 85%, #000000 100%),
+                linear-gradient(135deg, rgba(0,0,0,0.9) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.9) 100%),
+                linear-gradient(225deg, rgba(0,0,0,0.9) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.9) 100%);
             z-index: 5;
         }
 
@@ -316,8 +320,10 @@
             display: flex; 
             flex-direction: column; 
             gap: 6px; 
-            flex-shrink: 0;
+            flex-grow: 1; /* Ora sfrutta lo spazio recuperato dal box 16:9 */
+            justify-content: flex-start;
             width: 100%;
+            overflow-y: auto;
             padding-bottom: env(safe-area-inset-bottom, 0px); 
         }
 
@@ -335,6 +341,7 @@
             font-weight: bold;
             width: 100%;
             word-wrap: break-word;
+            flex-shrink: 0;
         }
 
         @media (hover: hover) {
@@ -356,7 +363,7 @@
         @media (max-height: 580px) {
             #game-container { padding: 8px; }
             #game-subtitle { display: none; }
-            #text-display { height: 110px; max-height: 110px; font-size: 0.9rem; margin-bottom: 4px; }
+            #text-display { height: 100px; max-height: 100px; font-size: 0.9rem; margin-bottom: 4px; }
             #camera-container { margin-bottom: 6px; }
             .choice-btn { padding: 6px 8px; font-size: 0.8rem; }
         }
@@ -368,7 +375,7 @@
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 class="splash-title">THE BACKROOMS</h1>
-            <div class="splash-subtitle">INFINITE DESCENT (Build 22)</div>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 23)</div>
             
             <p style="font-size: 0.9rem; line-height: 1.5; text-align: left; color: #1f1d16; font-weight: bold; margin: 0 0 12px 0; border-left: 3px solid var(--terminal-red); padding-left: 10px;">
                 Non ricordi come sia successo. Un passo falso, uno scivolone fuori dalla realtà, e la consistenza stessa del mondo si è spezzata. Sei sprofondato qui. Un labirinto infinito di moquette umida, pareti gialle asettiche e l'ossessivo ronzio dei neon. Non c'è un'uscita logica. Questo sistema richiede l'accesso visivo ambientale per monitorare i tuoi parametri neuro-ottici.
@@ -389,7 +396,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 22</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 23</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -401,9 +408,9 @@
 
             <div id="text-display"></div>
 
-            <!-- CAMERA LIVE BOX SYSTEM V2 (DIRETTIVA GIALLO/NERO) -->
+            <!-- CAMERA LIVE BOX SYSTEM V3 (PROSPETTICA 16:9) -->
             <div id="camera-container">
-                <div id="camera-hud"><div id="rec-dot"></div><span>LIVE_FEED // RECOVERY_MODE</span></div>
+                <div id="camera-hud"><div id="rec-dot"></div><span>LIVE_FEED // PERSPECTIVE_TUNNEL</span></div>
                 <div id="camera-overlay"></div>
                 <video id="camera-feed" autoplay playsinline muted></video>
             </div>
@@ -426,7 +433,7 @@
                 video: {
                     facingMode: "user", 
                     width: { ideal: 640 },
-                    height: { ideal: 480 }
+                    height: { ideal: 360 } // Ottimizzato nativamente per il 16:9
                 },
                 audio: false
             };
@@ -591,7 +598,7 @@
             osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 850);
         }
 
-        // ALTRI EFFETTI S_ POOL INTEGRATI
+        // ALTRI EFFETTI POOL INTEGRATI
         function playS_NeonOverload() { const osc = new Tone.Oscillator(120, "sawtooth").toDestination(); osc.volume.setValueAtTime(8, Tone.now()); osc.volume.linearRampToValueAtTime(-40, Tone.now() + 0.4); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 450); }
         function playS_IndustrialRelay() { const osc = new Tone.Oscillator(90, "triangle").toDestination(); osc.volume.setValueAtTime(10, Tone.now()); osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.05); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 100); }
         function playS_Infrasub() { const osc = new Tone.Oscillator(30, "sine").toDestination(); osc.volume.setValueAtTime(14, Tone.now()); osc.volume.linearRampToValueAtTime(-45, Tone.now() + 1.5); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1600); }
@@ -833,8 +840,7 @@
                     filterEffect.frequency.rampTo(80, 0.5); 
                     noiseGenerator.volume.rampTo(-3, 0.5);
                 }
-                // Con follia alta lo schermo si distorce ancora di più diventando quasi monocromatico e sgranato
-                videoFeed.style.filter = "contrast(3) brightness(0.5) sepia(1) hue-rotate(-10deg) saturate(2) blur(2px)";
+                videoFeed.style.filter = "contrast(3) brightness(0.45) sepia(1) hue-rotate(-10deg) saturate(2) blur(1px)";
             } else {
                 body.classList.remove("insane-bg");
                 toggleSiren(false); 
@@ -842,8 +848,7 @@
                     filterEffect.frequency.rampTo(180, 0.5);
                     noiseGenerator.volume.rampTo(-15, 0.5);
                 }
-                // Filtro standard Build 22: contrasto alto (sfondo nero) e viraggio giallo
-                videoFeed.style.filter = "contrast(2.1) brightness(0.7) sepia(1) hue-rotate(15deg) saturate(1.4)";
+                videoFeed.style.filter = "contrast(2.3) brightness(0.65) sepia(1) hue-rotate(12deg) saturate(1.5)";
             }
 
             document.getElementById("stat-location").innerText = `#${gameState.roomCount}`;
