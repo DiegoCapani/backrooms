@@ -9,7 +9,6 @@
 
     <style>
         :root {
-            /* Giallo più acceso e saturo, tipico delle luci al neon commerciali */
             --bg-yellow: #e2ce73;       
             --shadow-yellow: #bfae59;   
             --text-dark: #1f1d16;       
@@ -34,7 +33,7 @@
             position: relative;
         }
 
-        /* Effetto VHS ammorbidito */
+        /* Effetto VHS statico sullo sfondo */
         body::before {
             content: " ";
             display: block;
@@ -55,18 +54,19 @@
             pointer-events: none;
         }
 
+        /* IL CONTENITORE DI GIOCO REMANE SEMPRE FERMO E LEGGIBILE */
         #game-container {
             max-width: 700px;
             width: 100%;
             border: 3px double var(--text-dark);
             padding: 30px;
-            background-color: rgba(226, 206, 115, 0.9); 
+            background-color: rgba(226, 206, 115, 0.95); 
             backdrop-filter: blur(1px);
-            z-index: 2;
+            z-index: 20; /* Sopra gli effetti di glitch dello sfondo */
             box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.2);
         }
 
-        /* Titolo di testa */
+        /* Titoli in testa */
         #game-title {
             text-align: center;
             font-size: 1.6rem;
@@ -152,34 +152,13 @@
 
         .choice-btn:hover::before { content: "> "; position: absolute; left: 12px; }
 
-        /* Glitch alleggerito (solo un leggero sussulto della camera) */
-        .glitch-screen {
-            animation: shakeX 0.6s infinite;
-        }
-
-        /* Schermata iniziale di attivazione audio */
-        #audio-gate {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-yellow);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            text-align: center;
+        /* GLITCH SOTTOCONTROLLO: scuote solo lo sfondo, dura 1 secondo e non si ripete all'infinito */
+        .glitch-bg {
+            animation: shakeX 1s ease-in-out 1;
         }
     </style>
 </head>
 <body id="body-screen">
-
-    <!-- Schermata di avvio per i permessi Audio del Browser -->
-    <div id="audio-gate">
-        <h1 style="letter-spacing: 4px;">THE BACKROOMS</h1>
-        <p style="max-width: 500px; font-weight: bold; line-height: 1.5;">Il gioco genera un soundscape horror procedurale in tempo reale. Indossa le cuffie.</p>
-        <button class="choice-btn" id="start-game-btn" style="margin-top: 20px; text-align: center;">ENTRA NEL LIVELLO 0</button>
-    </div>
 
     <div id="game-container" class="animate__animated animate__fadeIn">
         <!-- Titoli in testa -->
@@ -209,79 +188,38 @@
             currentRoomData: {}
         };
 
-        // VARIABILI AUDIO
-        let audioCtx = null;
-        let neonOscillator = null;
-        let droneOscillator = null;
-
         // DIZIONARI PER LA GENERAZIONE INFINITA
         const roomTypes = [
             "un corridoio ad angolo retto", "una stanza quadrata completamente vuota", 
             "uno snodo a tre vie", "un immenso salone pilastrato", 
-            "un vicolo cieco soffocante", "una serie di uffici comunicanti senza porte"
+            "un vicolo cieco claustrofobico", "una serie di uffici comunicanti senza porte"
         ];
 
         const wallDetails = [
-            "la carta da parati gialla si sta scollando, rivelando macchie di muffa scura.",
-            "le pareti sono perfettamente intonacate di un giallo accecante che ferisce gli occhi.",
-            "qualcuno ha tracciato delle frecce sbiadite sul muro con un pennarello nero, ma si interrompono nel nulla.",
-            "una delle pareti sembra vibrare visivamente se smetti di fissarla direttamente."
+            "la carta da parati gialla si sta scollando, rivelando vecchie macchie di umidità.",
+            "les pareti sono modellate in un giallo accecante e uniforme che stordisce la vista.",
+            "qualcuno ha tracciato delle frecce sbiadite sul muro con un pennarello, ma girano in tondo.",
+            "la superficie della parete sembra quasi tremare se provi a guardarla con la coda dell'occhio."
         ];
 
         const floorDetails = [
-            "la moquette è zuppa d'acqua e produce un rumore umido a ogni tuo passo.",
-            "l'odore di acido e vecchio emanato dal pavimento ti provoca una leggera nausea.",
-            "il pavimento di linoleum scricchiola paurosamente sotto le tue scarpe.",
-            "pezzi di moquette sono stati strappati via, lasciando scoperto il cemento nudo."
+            "la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
+            "l'odore acido di muffa e polvere emanato dal pavimento ti stringe la gola.",
+            "il pavimento di vecchio linoleum scricchiola pesantemente a ogni passo.",
+            "strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
         ];
 
         const neonDetails = [
-            "le luci al neon sopra di te ronzano a una frequenza altissima, quasi dolorosa.",
-            "uno dei neon sfarfalla a intermittenza, gettando ombre scattose sulle pareti.",
-            "la luce è costante, giallognola e priva di calore, come quella di un obitorio.",
-            "senti un ronzio elettrico che sembra provenire dall'interno delle pareti stesse."
+            "le luci al neon sopra di te emettono un ronzio elettrico costante e innaturale.",
+            "uno dei tubi al neon sfarfalla debolmente, proiettando ombre irregolari.",
+            "la luce è fissa, fredda e ingannevole, non capisci da dove arrivi la corrente.",
+            "il ronzio dei neon sembra risuonare direttamente nella tua scatola cranica."
         ];
-
-        // FUNZIONE: ATTIVA AUDIO (Sintesi in tempo reale a basso volume)
-        function initAudio() {
-            if (audioCtx) return;
-            
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // 1. Il Ronzio dei Neon (Frequenza acuta + oscillazione)
-            neonOscillator = audioCtx.createOscillator();
-            let neonGain = audioCtx.createGain();
-            neonOscillator.type = 'sawtooth';
-            neonOscillator.frequency.setValueAtTime(120, audioCtx.currentTime); // Frequenza base ronzio elettrico
-            neonGain.gain.setValueAtTime(0.015, audioCtx.currentTime); // Volume molto basso per non infastidire
-            
-            // Filtro per rendere il neon più "reale" e asettico
-            let filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 1000;
-
-            neonOscillator.connect(filter);
-            filter.connect(neonGain);
-            neonGain.connect(audioCtx.destination);
-            neonOscillator.start();
-
-            // 2. Il Drone Horror di Sottofondo (Frequenza cupa e profonda)
-            droneOscillator = audioCtx.createOscillator();
-            let droneGain = audioCtx.createGain();
-            droneOscillator.type = 'sine';
-            droneOscillator.frequency.setValueAtTime(55, audioCtx.currentTime); // Nota bassissima (La)
-            droneGain.gain.setValueAtTime(0.02, audioCtx.currentTime); // Volume basso d'atmosfera
-            
-            droneOscillator.connect(droneGain);
-            droneGain.connect(audioCtx.destination);
-            droneGain.start();
-        }
 
         // GENERATORE PROCEDURALE DI STANZE
         function generateRandomRoom() {
             gameState.roomCount++;
             
-            // Scegli elementi casuali dai dizionari
             const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
             const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
             const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
@@ -291,23 +229,21 @@
             let sanityImpact = 0;
             let hasItem = false;
 
-            // Eventi Randomici della Stanza
             const randomEvent = Math.random();
             if (randomEvent < 0.25) {
-                roomText += "\n\nSu un angolo del pavimento noti una bottiglietta abbandonata di Acqua Mandorlina.";
+                roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
                 hasItem = true;
             } else if (randomEvent > 0.75) {
-                roomText += "\n\nIl ronzio si intensifica improvvisamente dentro la tua testa. Un senso di isolamento totale ti schiaccia le tempie.";
+                roomText += "\n\nIl ronzio visivo e sonoro raddoppia d'intensità per un attimo. Un senso di vuoto assoluto ti colpisce lo stomaco.";
                 sanityImpact = -15;
             } else if (randomEvent > 0.65 && randomEvent <= 0.75) {
-                roomText += "\n\nSenti un brivido lungo la schiena. Da qualche parte, oltre il muro alla tua destra, riecheggia il suono di passi bagnati che accelerano.";
+                roomText += "\n\nAvverti un brivido improvviso. Oltre l'angolo cieco davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
                 sanityImpact = -20;
             }
 
-            // Costruisci le scelte procedurali
             let choices = [
-                { text: "Avanza verso il prossimo corridoio", action: "move" },
-                { text: "Svolta l'angolo ed esplora una nuova sezione", action: "move" }
+                { text: "Prosegui lungo il percorso giallo", action: "move" },
+                { text: "Svolti l'angolo ed esplora la zona successiva", action: "move" }
             ];
 
             if (hasItem) {
@@ -331,10 +267,10 @@
 
             const room = gameState.currentRoomData;
 
-            // Applica danno alla sanità se presente
+            // Applica danno alla sanità ed esegui il glitch temporaneo dello sfondo
             if (room.sanityImpact < 0) {
                 gameState.sanity += room.sanityImpact;
-                room.sanityImpact = 0; // Evita di riapplicarlo se si rinfresca lo schermo
+                room.sanityImpact = 0; 
                 triggerGlitchEffect(true);
                 if (gameState.sanity <= 0) { renderGame(); return; }
             } else {
@@ -348,7 +284,7 @@
             sanityElement.innerText = gameState.sanity + "%";
             sanityElement.style.color = gameState.sanity < 50 ? "var(--terminal-red)" : "var(--text-dark)";
 
-            // Gestione Zaino/Inventario
+            // Gestione Inventario
             const inventoryElement = document.getElementById("stat-inventory");
             if (gameState.inventory.length === 0) {
                 inventoryElement.innerText = "Vuoto";
@@ -366,16 +302,16 @@
                 });
             }
 
-            // Stampa testo
+            // Stampa testo (Sempre leggibile e statico)
             document.getElementById("text-display").innerText = room.text;
 
-            // Rigenera Scelte
+            // Rigenera Pulsanti Scelta
             const choicesContainer = document.getElementById("choices-container");
             choicesContainer.innerHTML = "";
 
             room.choices.forEach(choice => {
                 const button = document.createElement("button");
-                button.classList.add("choice-btn", "animate__animated", "animate__fadeInUp");
+                button.classList.add("choice-btn");
                 button.innerText = choice.text;
                 
                 button.addEventListener("click", () => {
@@ -385,9 +321,8 @@
                         if (!gameState.inventory.includes("Acqua Mandorlina")) {
                             gameState.inventory.push("Acqua Mandorlina");
                         }
-                        // Rimuovi l'opzione di raccoglierla dopo il click
                         room.choices = room.choices.filter(c => c.action !== "loot");
-                        room.text = room.text.replace("\n\nSu un angolo del pavimento noti una bottiglietta abbandonata di Acqua Mandorlina.", "\n\nHai raccolto la bottiglia.");
+                        room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta abbandonata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
                     }
                     renderGame();
                 });
@@ -401,49 +336,42 @@
             renderGame();
         }
 
-        // Effetto sussulto camera attenuato
+        // Il glitch ora scuote SOLO il body (lo sfondo) e rimuove la classe dopo 1 secondo
         function triggerGlitchEffect(activate) {
-            const screen = document.getElementById("body-screen");
+            const body = document.getElementById("body-screen");
             if (activate) {
-                screen.classList.add("glitch-screen");
-                // Modifica leggermente la frequenza del drone per riflettere il panico
-                if (droneOscillator) droneOscillator.frequency.setValueAtTime(65, audioCtx.currentTime);
-            } else {
-                screen.classList.remove("glitch-screen");
-                if (droneOscillator && audioCtx) droneOscillator.frequency.setValueAtTime(55, audioCtx.currentTime);
+                body.classList.add("glitch-bg");
+                // Rimuove l'animazione dopo che è terminata (1 secondo), così può essere riutilizzata
+                setTimeout(() => {
+                    body.classList.remove("glitch-bg");
+                }, 1000);
             }
         }
 
         function executeGameOver() {
-            triggerGlitchEffect(true);
-            if (neonOscillator) neonOscillator.frequency.setValueAtTime(30, audioCtx.currentTime); // Il neon "muore"
-            
+            document.getElementById("body-screen").classList.add("glitch-bg");
             document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
-            document.getElementById("text-display").innerText = `Il giallo ha consumato la tua mente dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl ronzio delle luci ti ha riempito i pensieri fino a cancellare ogni ricordo del mondo reale. Ormai sei parte della struttura.`;
+            document.getElementById("text-display").innerText = `La tua mente ha ceduto dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl labirinto giallo ha cancellato i tuoi pensieri e la tua identità. Non stai più cercando un'uscita. Sei diventato parte delle Backrooms.`;
             
             const choicesContainer = document.getElementById("choices-container");
             choicesContainer.innerHTML = "";
             const restartBtn = document.createElement("button");
             restartBtn.classList.add("choice-btn");
-            restartBtn.innerText = "Resetta la tua coscienza (Ricomincia)";
+            restartBtn.innerText = "Riavvia la simulazione (Ricomincia)";
             restartBtn.addEventListener("click", () => {
                 gameState.roomCount = 0;
                 gameState.sanity = 100;
                 gameState.inventory = [];
-                if (neonOscillator) neonOscillator.frequency.setValueAtTime(120, audioCtx.currentTime);
+                document.getElementById("body-screen").classList.remove("glitch-bg");
                 generateRandomRoom();
                 renderGame();
             });
             choicesContainer.appendChild(restartBtn);
         }
 
-        // TRIGGER DI AVVIO JAVASCRIPT
-        document.getElementById("start-game-btn").addEventListener("click", () => {
-            initAudio(); // Avvia i sintetizzatori horror
-            document.getElementById("audio-gate").style.display = "none"; // Nascondi la schermata protettiva
-            generateRandomRoom(); // Genera la prima stanza procedurale
-            renderGame();
-        });
+        // Avvio immediato del primo livello procedurale
+        generateRandomRoom();
+        renderGame();
     </script>
 </body>
 </html>
