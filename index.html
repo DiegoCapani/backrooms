@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 18)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 19)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -303,7 +303,7 @@
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 class="splash-title">THE BACKROOMS</h1>
-            <div class="splash-subtitle">INFINITE DESCENT (Build 18)</div>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 19)</div>
             
             <p style="font-size: 0.9rem; line-height: 1.6; text-align: left; color: #1f1d16; font-weight: bold; margin: 0 0 15px 0; border-left: 3px solid var(--terminal-red); padding-left: 10px;">
                 Non ricordi come sia successo. Un passo falso, uno scivolone fuori dalla realtà, e la consistenza stessa del mondo si è spezzata. Sei sprofondato qui. Un labirinto infinito di moquette umida, pareti gialle asettiche e l'ossessivo, assordante ronzio dei neon. Non c'è un'uscita logica. Non sei solo. Ascolta attentamente ogni singola anomalia d'ambiente... o la tua mente cederà alla follia.
@@ -324,7 +324,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 18</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 19</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -362,8 +362,10 @@
                 
                 // Inizializzazione Sintetizzatore Sirena Cupa
                 sirenOsc = new Tone.Oscillator(75, "sawtooth");
-                const sirenFilter = new Tone.Filter(150, "lowpass");
-                sirenLFO = new Tone.LFO(1.5, -45, -8).connect(sirenOsc.volume); // Modula il volume per l'effetto pulsante
+                const sirenFilter = new Tone.Filter(140, "lowpass");
+                
+                // FIX VOLUME: Ridotto il guadagno dell'LFO di ~6dB (da -45/-8 a -51/-14) per dimezzare l'intensità percepita della sirena
+                sirenLFO = new Tone.LFO(1.5, -51, -14).connect(sirenOsc.volume); 
                 
                 sirenOsc.connect(sirenFilter);
                 sirenFilter.toDestination();
@@ -529,7 +531,7 @@
             const osc = new Tone.Oscillator(90, "triangle").toDestination();
             osc.volume.setValueAtTime(10, Tone.now());
             osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.05);
-            max = osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 100);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 100);
         }
         function playS_Infrasub() {
             const osc = new Tone.Oscillator(30, "sine").toDestination();
@@ -774,7 +776,7 @@
         // STATO DEL GIOCO (FOLLIA INCREMENTALE)
         let gameState = {
             roomCount: 0,
-            madness: 0, // Inizia a 0%
+            madness: 0, 
             inventory: [],
             currentRoomData: {}
         };
@@ -829,7 +831,7 @@
             "Una pianta finta in plastica, completamente coperta da uno sfarzoso strato di polvere grigia, occupa un angolo morto.",
             "Ci sono tre scatoloni di cartone bagnati accatastati; uno di essi è sfondato e rivela moduli cartacei completamente in bianco.",
             "Un vecchio orologio analogico da parete è appeso storto; le lancette sono ferme, ma emette un ticchettio metallico intermittente.",
-            "Sul pavimento noti una pozzanghera scura circondata da bicchieri di plastica monouso schiacciati.",
+            "Sul pavimento noti una pozzanghera scura circondata di bicchieri di plastica monouso schiacciati.",
             "C'è un appendiabiti metallico isolato al centro della stanza, deformato come se fosse stato piegato a forza.",
             "Un pallet di legno marcio blocca parzialmente il passaggio, costringendoti a girargli attorno.",
             "Vedi una sedia a rotelle da ospedale abbandonata di traverso, con una ruota che gira ancora nel silenzio."
@@ -878,14 +880,14 @@
             const objectInfo = objectDetails[Math.floor(Math.random() * objectDetails.length)];
 
             let roomText = `${transition} ${type}\n\n${wall} ${floor} ${neon}\n\n${objectInfo}`;
-            let madnessImpact = 0; // Incrementale
+            let madnessImpact = 0; 
             let hasItem = false;
             let triggeredAnomaly = false;
 
             if (gameState.roomCount > 1 && Math.random() < 0.07) {
                 const anomaly = anomalyDetails[Math.floor(Math.random() * anomalyDetails.length)];
                 roomText += `\n\n[ATTENZIONE]: ${anomaly}`;
-                madnessImpact = 25; // Aumenta la follia
+                madnessImpact = 25; 
                 triggeredAnomaly = true;
             }
 
@@ -898,11 +900,10 @@
                     hasItem = true;
                 } else if (randomEvent > 0.85) {
                     roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
-                    madnessImpact = 15; // Aumenta la follia
+                    madnessImpact = 15; 
                 }
             }
 
-            // CALCOLO AUDIO JUMP-SCARE (10%)
             if (gameState.roomCount > 1) {
                 if (triggeredAnomaly) {
                     setTimeout(() => { Math.random() > 0.5 ? playProceduralBreath() : playProceduralScream(); }, 200);
@@ -937,7 +938,6 @@
         function renderGame() {
             if (gameState.roomCount === 0) return;
 
-            // CRITERIO DI MORTE: FOLLIA AL 100%
             if (gameState.madness >= 100) {
                 gameState.madness = 100;
                 executeGameOver();
@@ -955,17 +955,16 @@
                 if (gameState.madness >= 100) { renderGame(); return; }
             }
 
-            // GESTIONE STATO DI CRISI (FOLLIA >= 80%)
             if (gameState.madness >= 80) {
-                body.classList.add("insane-bg"); // Attiva animazione pulsante CSS (Giallo -> Rosso)
-                toggleSiren(true); // Attiva allarme acustico cupo pulsante
+                body.classList.add("insane-bg"); 
+                toggleSiren(true); 
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(80, 0.5); 
                     noiseGenerator.volume.rampTo(-3, 0.5);
                 }
             } else {
                 body.classList.remove("insane-bg");
-                toggleSiren(false); // Disattiva allarme cupo
+                toggleSiren(false); 
                 if (audioInitialized && filterEffect && noiseGenerator) {
                     filterEffect.frequency.rampTo(180, 0.5);
                     noiseGenerator.volume.rampTo(-15, 0.5);
@@ -978,7 +977,6 @@
             sanityElement.innerText = gameState.madness + "%";
             sanityElement.style.color = gameState.madness >= 80 ? "var(--terminal-red)" : "var(--text-dark)";
 
-            // RENDERING ZAINO CON FILTRO DI SICUREZZA ANTI-BUG
             const inventoryElement = document.getElementById("stat-inventory");
             if (gameState.inventory.length === 0) {
                 inventoryElement.innerText = "Vuoto";
@@ -1026,13 +1024,11 @@
             });
         }
 
-        // FUNZIONE CONSUMO OGGETTI - RISOLTO BUG DELl'ACQUA MENTRE SEI MORTO
         function useAlmondWater(index) {
-            // FIX CRITICO: Se il giocatore è morto (Follia al 100%), blocca l'esecuzione e impedisci la resurrezione
             if (gameState.madness >= 100) return;
 
             gameState.inventory.splice(index, 1);
-            gameState.madness = Math.max(gameState.madness - 35, 0); // Abbassa la follia
+            gameState.madness = Math.max(gameState.madness - 35, 0); 
             renderGame();
         }
 
@@ -1045,7 +1041,6 @@
         }
 
         function executeGameOver() {
-            // Spegne tutte le frequenze audio e l'allarme cupo
             toggleSiren(false);
             if (audioInitialized && noiseGenerator) {
                 noiseGenerator.stop();
@@ -1055,8 +1050,6 @@
             document.getElementById("body-screen").classList.add("glitch-bg");
             document.getElementById("body-screen").classList.remove("insane-bg");
             document.getElementById("stat-sanity").innerText = "100% - COMA PSICOTICO";
-            
-            // Nasconde completamente lo zaino per prevenire click fantasma post-mortem
             document.getElementById("stat-inventory").innerText = "Inaccessibile";
             
             document.getElementById("text-display").innerText = `La tua mente ha ceduto completamente dopo aver esplorato ${gameState.roomCount} stanze.\n\nLa Follia ha saturato i tuoi canali cerebrali. Il labirinto giallo ha cancellato i tuoi pensieri e la tua identità e ti ha assimilato. Non puoi fare altro.\n\nDeveloped by Diego Capani.`;
