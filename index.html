@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE BACKROOMS: INFINITE DESCENT</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (v0.1)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
@@ -154,7 +154,7 @@
 <body id="body-screen">
 
     <div id="game-container" class="animate__animated animate__fadeIn">
-        <div id="game-title">The Backrooms</div>
+        <div id="game-title">The Backrooms <span style="font-size: 0.9rem; letter-spacing: 0;">v0.1</span></div>
         <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
         <div id="status-bar">
@@ -168,7 +168,7 @@
     </div>
 
     <script>
-        // MOTORE AUDIO NATIVO RIPRISTINATO E POTENZIATO DEL 20%
+        // ENGINE AUDIO NATIVO CORRETTO
         let audioCtx = null;
         let droneOsc1 = null;
         let droneOsc2 = null;
@@ -182,8 +182,12 @@
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 
+                // Se il contesto è in uno stato sospeso (politiche del browser), lo riattiviamo
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
                 masterGain = audioCtx.createGain();
-                // Volume di base ripristinato e incrementato del 20% (da 0.04 a 0.05)
                 masterGain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
                 
                 droneOsc1 = audioCtx.createOscillator();
@@ -207,22 +211,21 @@
                 droneOsc2.start();
                 
                 audioStarted = true;
-                console.log("Soundscape analogico ripristinato e potenziato.");
+                console.log("Drone analogico avviato correttamente.");
             } catch (error) {
-                console.error("Errore nell'avvio dell'audio:", error);
+                console.error("Impossibile avviare il comparto audio:", error);
             }
         }
 
-        // SINTETIZZATORE DI RUMORI AMBIENTALI PROCEDURALI
+        // SINTESI DEI RUMORI DI AMBIENTAZIONE (RAREFAZIONE APPLICATA)
         function playProceduralHorrorSound() {
             if (!audioStarted || !audioCtx) return;
 
-            const soundType = Math.floor(Math.random() * 3); // 0: Passi, 1: Porta, 2: Neon Glitch
+            const soundType = Math.floor(Math.random() * 3);
             const now = audioCtx.currentTime;
 
             if (soundType === 0) {
-                // 1. SINTEI PASSI (Piccoli tocchi cupi in sequenza)
-                console.log("[SFX] Passi sordi in lontananza...");
+                // PASSI IN LONTANANZA
                 for (let i = 0; i < 4; i++) {
                     const stepTime = now + (i * 0.6);
                     const osc = audioCtx.createOscillator();
@@ -242,8 +245,7 @@
                 }
             } 
             else if (soundType === 1) {
-                // 2. SINTESI PORTA CHE SBATTE (Colpo violento + riverbero sordo)
-                console.log("[SFX] Un forte sbatacchio echeggia nei corridoi.");
+                // PORTA CHE SBATTE COLPENDO LE PARETI
                 const osc = audioCtx.createOscillator();
                 const noiseGain = audioCtx.createGain();
                 
@@ -251,7 +253,7 @@
                 osc.frequency.setValueAtTime(80, now);
                 osc.frequency.linearRampToValueAtTime(40, now + 0.4);
                 
-                noiseGain.gain.setValueAtTime(0.25, now);
+                noiseGain.gain.setValueAtTime(0.20, now);
                 noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
                 
                 osc.connect(noiseGain);
@@ -260,17 +262,16 @@
                 osc.stop(now + 0.8);
             } 
             else if (soundType === 2) {
-                // 3. SINTESI NEON GLITCH (Crepitio elettrico ad alta frequenza)
-                console.log("[SFX] Un neon sfarfalla violentemente.");
-                for (let i = 0; i < 8; i++) {
+                // SFARFALLIO DEL NEON ACUTO
+                for (let i = 0; i < 6; i++) {
                     const glitchTime = now + (Math.random() * 0.3);
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(800 + Math.random() * 400, glitchTime);
+                    osc.frequency.setValueAtTime(700 + Math.random() * 300, glitchTime);
                     
-                    gain.gain.setValueAtTime(0.03, glitchTime);
+                    gain.gain.setValueAtTime(0.02, glitchTime);
                     gain.gain.setValueAtTime(0, glitchTime + 0.02);
                     
                     osc.connect(gain);
@@ -376,11 +377,10 @@
                 choices: choices
             };
 
-            // MECCANICA DI CONTROLLO RUMORI CASUALI (35% di probabilità standard, 65% sotto la soglia di pazzia)
-            const soundThreshold = gameState.sanity < 30 ? 0.65 : 0.35;
+            // PROBABILITÀ NOTEVOLMENTE RIDOTTA (10% normale, 25% in stato di pazzia)
+            const soundThreshold = gameState.sanity < 30 ? 0.25 : 0.10;
             if (Math.random() < soundThreshold && gameState.roomCount > 1) {
-                // Ritardiamo leggermente l'esecuzione per farla sentire durante o subito dopo la transizione di testo
-                setTimeout(playProceduralHorrorSound, 400);
+                setTimeout(playProceduralHorrorSound, 500);
             }
         }
 
@@ -402,7 +402,6 @@
             } else if (gameState.sanity < 30) {
                 body.classList.add("insane-bg");
                 
-                // EFFETTO PAZZIA SULL'AUDIO VECCHIO: Alziamo ulteriormente il volume e stringiamo il filtro passa-basso
                 if (masterGain && audioCtx) {
                     masterGain.gain.linearRampToValueAtTime(0.09, audioCtx.currentTime + 0.5);
                     lowPassFilter.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.5);
@@ -450,6 +449,7 @@
                 button.innerText = choice.text;
                 
                 button.addEventListener("click", () => {
+                    // Avviamo o forziamo la riattivazione dell'audio al click
                     startSoundscape();
 
                     if (choice.action === "move") {
