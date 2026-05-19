@@ -2,8 +2,8 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE BACKROOMS: INFINITE DESCENT (v0.2)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE BACKROOMS: INFINITE DESCENT (v0.3)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
@@ -24,11 +24,12 @@
             color: var(--text-dark);
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            height: 100vh;
             overflow: hidden;
             position: relative;
         }
@@ -54,34 +55,39 @@
         }
 
         #game-container {
-            max-width: 700px;
-            width: 100%;
+            width: 96%;
+            max-width: 680px;
+            max-height: 94vh;
             border: 3px double var(--text-dark);
-            padding: 30px;
+            padding: 20px;
             background-color: rgba(226, 206, 115, 0.95); 
             backdrop-filter: blur(1px);
             z-index: 20; 
             box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
         }
 
         #game-title {
             text-align: center;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             font-weight: bold;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             margin-top: 0;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             text-transform: uppercase;
             border-bottom: 3px double var(--text-dark);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
+            flex-shrink: 0;
         }
 
         #game-subtitle {
             text-align: center;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
             color: #57523d;
+            flex-shrink: 0;
         }
 
         #status-bar {
@@ -89,72 +95,102 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px dashed var(--text-dark);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 5px;
         }
 
         .stat-label { color: #5c553a; }
         .stat-val { color: var(--text-dark); }
 
-        #inventory-container { display: flex; gap: 5px; align-items: center; }
+        #inventory-container { display: flex; gap: 3px; align-items: center; }
 
         .use-item-btn {
             background: var(--text-dark);
             color: var(--bg-yellow);
             border: none;
-            padding: 2px 6px;
+            padding: 1px 5px;
             font-family: inherit;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
-            margin-left: 5px;
+            margin-left: 4px;
             font-weight: bold;
         }
 
-        .use-item-btn:hover { background: var(--terminal-red); color: #fff; }
+        .use-item-btn:hover, .use-item-btn:active { background: var(--terminal-red); color: #fff; }
 
         #text-display {
-            font-size: 1.15rem;
-            line-height: 1.6;
-            margin-bottom: 35px;
-            min-height: 180px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 5px;
             white-space: pre-line;
             font-weight: 600;
+            /* Scrollbar personalizzata per non rompere il look retro */
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-dark) transparent;
         }
 
-        #choices-container { display: flex; flex-direction: column; gap: 14px; }
+        #text-display::-webkit-scrollbar { width: 4px; }
+        #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
+
+        #choices-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            flex-shrink: 0;
+        }
 
         .choice-btn {
             background-color: transparent;
             color: var(--text-dark);
             border: 2px solid var(--text-dark);
-            padding: 14px 20px;
+            padding: 12px 15px;
             font-family: inherit;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             text-align: left;
             cursor: pointer;
             transition: all 0.15s ease;
             position: relative;
             font-weight: bold;
+            width: 100%;
+            word-wrap: break-word;
         }
 
-        .choice-btn:hover {
+        .choice-btn:hover, .choice-btn:active {
             background-color: var(--text-dark);
             color: var(--bg-yellow);
-            padding-left: 30px;
+            padding-left: 25px;
         }
 
-        .choice-btn:hover::before { content: "> "; position: absolute; left: 12px; }
+        .choice-btn:hover::before { content: "> "; position: absolute; left: 10px; }
 
         .glitch-bg { animation: shakeX 1s ease-in-out 1; }
         .insane-bg { animation: shakeX 4s ease-in-out infinite; opacity: 0.95; }
+
+        /* REGOLE SPECIFICHE PER SCHERMI MOLTO PICCOLI (MOBILE PORTRAIT) */
+        @media (max-width: 480px) {
+            #game-container {
+                padding: 15px;
+                height: 96vh;
+            }
+            #game-title { font-size: 1.15rem; }
+            #text-display { font-size: 0.95rem; margin-bottom: 15px; }
+            .choice-btn { padding: 10px 12px; font-size: 0.85rem; }
+            #status-bar { font-size: 0.75rem; }
+        }
     </style>
 </head>
 <body id="body-screen">
 
     <div id="game-container" class="animate__animated animate__fadeIn">
-        <div id="game-title">The Backrooms <span style="font-size: 0.9rem; letter-spacing: 0;">v0.2</span></div>
+        <div id="game-title">The Backrooms <span style="font-size: 0.8rem; letter-spacing: 0;">v0.3</span></div>
         <div id="game-subtitle">Discesa Procedurale Infinita</div>
 
         <div id="status-bar">
@@ -216,7 +252,6 @@
             }
         }
 
-        // SINTESI DEI RUMORI DI AMBIENTAZIONE (RARI)
         function playProceduralHorrorSound() {
             if (!audioStarted || !audioCtx) return;
 
@@ -289,7 +324,6 @@
             currentRoomData: {}
         };
 
-        // ALTERNATIVE NARRATIVE PER L'INGRESSO NELLE STANZE
         const transitions = [
             "Ti spingi dentro", "Varchi la soglia di", "I tuoi passi ti portano in", 
             "Ti ritrovi all'interno di", "Ti inoltri in", "Scivoli silenziosamente in", 
@@ -344,7 +378,6 @@
             const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
             const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
 
-            // COMPOSIZIONE DINAMICA SENZA RIPETIZIONI DI FRASE FISSA
             let roomText = `${transition} ${type}.\n\nOsservando i dettagli, ${wall} A terra, ${floor}\n\nIn alto, ${neon}`;
             let sanityImpact = 0;
             let hasItem = false;
@@ -385,7 +418,6 @@
                 choices: choices
             };
 
-            // FREQUENZA RUMORI FISSA AL 10% (25% sotto la soglia di pazzia)
             const soundThreshold = gameState.sanity < 30 ? 0.25 : 0.10;
             if (Math.random() < soundThreshold && gameState.roomCount > 1) {
                 setTimeout(playProceduralHorrorSound, 500);
@@ -447,6 +479,8 @@
             }
 
             document.getElementById("text-display").innerText = applyMadnessToText(room.text);
+            // Forza lo scroll in alto del box testuale quando cambia stanza
+            document.getElementById("text-display").scrollTop = 0;
 
             const choicesContainer = document.getElementById("choices-container");
             choicesContainer.innerHTML = "";
