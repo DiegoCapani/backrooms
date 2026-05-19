@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 13)</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        :root {
+            --bg-yellow: #e2ce73;       
+            --shadow-yellow: #bfae59;   
+            --text-dark: #1f1d16;       
+            --terminal-red: #9e0000;    
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Scanlines CRT & Vignette */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.07) 50%);
+            z-index: 999;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.35) 100%);
+            z-index: 998;
+            pointer-events: none;
+        }
+
+        /* SPLASH SCREEN INTERATTIVA - GIALLA */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #splash-container {
+            max-width: 500px;
+            border: 2px dashed var(--text-dark);
+            padding: 35px 25px;
+            background-color: rgba(226, 206, 115, 0.85);
+            backdrop-filter: blur(2px);
+        }
+
+        .start-btn {
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+            border: none;
+            padding: 16px 32px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 0 #12110d;
+            transition: all 0.1s ease;
+            width: 100%;
+        }
+
+        .start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #12110d;
+        }
+
+        /* VIEWPORT STRUTTURALE MOBILE-SAFE */
+        #main-viewport {
+            position: absolute;
+            top: 0; bottom: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 640px;
+            height: 100%; 
+            border: 3px double var(--text-dark);
+            padding: 15px;
+            background-color: rgba(226, 206, 115, 0.95); 
+            backdrop-filter: blur(1px);
+            z-index: 20; 
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header-area { flex-shrink: 0; }
+
+        #game-title {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 0;
+            text-transform: uppercase;
+            border-bottom: 3px double var(--text-dark);
+            padding-bottom: 4px;
+        }
+
+        #game-subtitle {
+            text-align: center;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            margin: 6px 0 8px 0;
+            color: #1f1d16;
+            font-weight: bold;
+        }
+
+        #status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--text-dark);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .stat-label { color: #5c553a; }
+        .stat-val { color: var(--text-dark); }
+
+        #inventory-container { display: flex; gap: 3px; align-items: center; }
+
+        .use-item-btn {
+            background: var(--text-dark);
+            color: var(--bg-yellow);
+            border: none;
+            padding: 2px 6px;
+            font-family: inherit;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+
+        #text-display {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+            white-space: pre-line;
+            font-weight: 600;
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-dark) transparent;
+        }
+
+        #text-display::-webkit-scrollbar { width: 4px; }
+        #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
+
+        #choices-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            flex-shrink: 0;
+            width: 100%;
+            padding-bottom: env(safe-area-inset-bottom, 0px); 
+        }
+
+        .choice-btn {
+            background-color: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--text-dark);
+            padding: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            font-weight: bold;
+            width: 100%;
+            word-wrap: break-word;
+        }
+
+        @media (hover: hover) {
+            .choice-btn:hover {
+                background-color: var(--text-dark);
+                color: var(--bg-yellow);
+                padding-left: 22px;
+            }
+            .choice-btn:hover::before { content: "> "; position: absolute; left: 8px; }
+        }
+
+        .choice-btn:active {
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+        }
+
+        .glitch-bg { animation: shakeX 1s ease-in-out 1; }
+        .insane-bg { animation: shakeX 4s ease-in-out infinite; opacity: 0.95; }
+
+        @media (max-height: 520px) {
+            #game-container { padding: 10px; }
+            #game-subtitle { display: none; }
+            #text-display { font-size: 0.95rem; margin-bottom: 6px; }
+            .choice-btn { padding: 8px 10px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body id="body-screen">
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div id="splash-container" class="animate__animated animate__fadeIn">
+            <h1 style="font-size: 1.4rem; letter-spacing: 3px; margin-top: 0; color: var(--text-dark);">SIMULAZIONE AVVIATA</h1>
+            <p style="font-size: 0.95rem; line-height: 1.6; text-align: left; color: #3d392b; font-weight: bold;">
+                Il sistema audio procedurale richiede l'interazione dell'utente per inizializzare i sintetizzatori di sottofondo e gli stimoli d'ambiente.<br><br>
+                Premi "ENTRA" per stabilizzare il segnale e iniziare l'esplorazione.
+            </p>
+            <button class="start-btn" onclick="initGame()">Entra</button>
+        </div>
+    </div>
+
+    <!-- MAIN VIEWPORT -->
+    <div id="main-viewport">
+        <div id="game-container">
+            <div id="header-area">
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 13</span></div>
+                <div id="game-subtitle">Developed by Diego Capani</div>
+
+                <div id="status-bar">
+                    <div><span class="stat-label">STANZA:</span> <span id="stat-location" class="stat-val">#0</span></div>
+                    <div><span class="stat-label">SANITA':</span> <span id="stat-sanity" class="stat-val">100%</span></div>
+                    <div id="inventory-container"><span class="stat-label">ZAINO:</span> <span id="stat-inventory" class="stat-val">Vuoto</span></div>
+                </div>
+            </div>
+
+            <div id="text-display"></div>
+            <div id="choices-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAZIONE AUDIO - BUILD 13 (SINTESI PROCEDURALE HORROR)
+        let audioInitialized = false;
+        let noiseGenerator = null;
+        let filterEffect = null;
+
+        async function initAudio() {
+            if (audioInitialized) return;
+            try {
+                await Tone.start();
+                noiseGenerator = new Tone.Noise("pink");
+                filterEffect = new Tone.Filter({ type: "lowpass", frequency: 200, Q: 2 });
+                noiseGenerator.volume.value = -12; 
+                noiseGenerator.connect(filterEffect);
+                filterEffect.toDestination();
+                noiseGenerator.start();
+                audioInitialized = true;
+                console.log("Audio e motori sintetizzatori d'ambiente pronti.");
+            } catch (e) {
+                console.error("Errore audio:", e);
+            }
+        }
+
+        // MOTORE DI SINTESI DEL SEGNALE CASUALE (SUONI HORROR)
+        function playProceduralFootstep() {
+            if (!audioInitialized) return;
+            const lowFilter = new Tone.Filter(150, "lowpass").toDestination();
+            const noise = new Tone.Noise("pink").connect(lowFilter);
+            noise.volume.setValueAtTime(-10, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.15);
+            noise.start();
+            setTimeout(() => { noise.stop(); lowFilter.dispose(); noise.dispose(); }, 200);
+        }
+
+        function playProceduralBreath() {
+            if (!audioInitialized) return;
+            const filter = new Tone.Filter(300, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(-45, Tone.now());
+            noise.volume.linearRampToValueAtTime(-15, Tone.now() + 0.6);
+            noise.volume.linearRampToValueAtTime(-45, Tone.now() + 1.4);
+            noise.start();
+            setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 1500);
+        }
+
+        function playProceduralThud() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(55, "sine").toDestination();
+            const lowFilter = new Tone.Filter(80, "lowpass").toDestination();
+            osc.connect(lowFilter);
+            osc.volume.setValueAtTime(0, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.8);
+            osc.start();
+            setTimeout(() => { osc.stop(); lowFilter.dispose(); osc.dispose(); }, 900);
+        }
+
+        function playProceduralScreech() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(440, "sawtooth").toDestination();
+            const filter = new Tone.Filter(800, "bandpass").toDestination();
+            const dist = new Tone.Distortion(0.4).toDestination();
+            osc.connect(filter);
+            filter.connect(dist);
+            osc.frequency.setValueAtTime(380, Tone.now());
+            osc.frequency.linearRampToValueAtTime(520, Tone.now() + 0.5);
+            osc.volume.setValueAtTime(-18, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.6);
+            osc.start();
+            setTimeout(() => { osc.stop(); filter.dispose(); dist.dispose(); osc.dispose(); }, 700);
+        }
+
+        // STATO DEL GIOCO
+        let gameState = {
+            roomCount: 0,
+            sanity: 100,
+            inventory: [],
+            currentRoomData: {}
+        };
+
+        // MATRICE DI SCRITTURA PROCEDURALE
+        const movementTransitions = [
+            "Superi la soglia e ti ritrovi in",
+            "Svolti l'ennesimo angolo cieco, sbucando in",
+            "I tuoi passi ti conducono all'interno di",
+            "Prosegui a tentoni finché lo spazio non si apre su",
+            "Cammini senza meta finché non entri in",
+            "Ti lasci alle spalle il corridoio precedente per penetrare in",
+            "Strisciando rasente la parete, accedi a",
+            "Avanzi stancamente, finendo dritto dentro",
+            "Il percorso si snoda bruscamente, rivelando",
+            "Oltrepassi una fessura nel muro e ti ritrovi in",
+            "Senza una reale direzione, scivoli dentro",
+            "Spingi lo sguardo in avanti mentre entri in"
+        ];
+
+        const roomTypes = [
+            "un corridoio ad angolo retto.", "una stanza quadrata completamente vuota.", 
+            "uno snodo a tre vie.", "un immenso salone pilastrato.", 
+            "un vicolo cieco claustrofobico.", "una serie di uffici comunicanti senza porte."
+        ];
+
+        const wallDetails = [
+            "Le pareti circoscrittore mostrano una carta da parati gialla che si sta scollando, piena di vecchie macchie di umidità.",
+            "Tutto intorno, le superfici verticali sono modellate in un giallo accecante e uniforme che stordisce la vista.",
+            "Osservando i muri che ti racchiudono, noti che qualcuno ha tracciato delle frecce sbiadite con un pennarello, ma girano in tondo.",
+            "Lo sfondo visivo sembra quasi tremare se provi a fissare le pareti gialle con la coda dell'occhio.",
+            "La vista è saturata da quel monotono rivestimento giallastro che ricopre ogni singola parete.",
+            "I divisori di cartongesso ai lati appaiono asimmetrici, rivestiti della solita trama a parati ingiallita."
+        ];
+
+        const floorDetails = [
+            "A terra, la moquette è zuppa e produce un fastidioso rumore bagnato sotto le tue scarpe.",
+            "Il pavimento emana un odore acido di muffa e polvere che ti stringe la gola.",
+            "Sotto i piedi, il vecchio linoleum scricchiola pesantemente a ogni minimo passo.",
+            "Guardando in basso, strisce di moquette sono state strappate via, lasciando intravedere il cemento grezzo."
+        ];
+
+        const neonDetails = [
+            "In alto, le luci al neon emettono un ronzio elettrico costante e innaturale.",
+            "Sopra la tua testa, uno dei tubi al neon sfarfalla debolmente, proiettando ombre irregolari.",
+            "La plafoniera sul soffitto emana una luce fissa, fredda e ingannevole; non si capisce da dove arrivi la corrente.",
+            "Dalle lampade sospese proviene quel ronzio ossessivo che sembra risuonare direttamente nella tua scatola cranica."
+        ];
+
+        const movementChoicesPool = [
+            "Prosegui dritto lungo il percorso umido",
+            "Svolti bruscamente l'angolo cieco",
+            "Entra nella stanza di destra superando l'arco",
+            "Esplora lo stretto varco sul lato sinistro",
+            "Forza una porta di legno sbiadita (sembra bloccata)",
+            "Attraversa un'apertura quadrata nel cartongesso",
+            "Segui la fila di neon intermittenti verso il fondo",
+            "Allontanati dalla zona più buia camminando all'indietro",
+            "Infilati in una stretta fessura tra due pareti asimmetriche",
+            "Scendi tre gradini di cemento verso un livello ribassato",
+            "Segui le frecce sbiadite tracciate sul muro",
+            "Supera una porta tagliafuoco accostata"
+        ];
+
+        function applyMadnessToText(text) {
+            if (gameState.sanity >= 30) return text;
+            const glitchChars = ["§", "#", "Ø", "*", "!", "@", "æ", "¶", "??"];
+            let chars = text.split("");
+            for (let i = 0; i < chars.length; i++) {
+                if (Math.random() < 0.12 && chars[i] !== "\n" && chars[i] !== " ") {
+                    chars[i] = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }
+            }
+            return chars.join("");
+        }
+
+        function getRandomChoices(array, count) {
+            let shuffled = [...array].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function generateRandomRoom() {
+            gameState.roomCount++;
+            
+            const transition = movementTransitions[Math.floor(Math.random() * movementTransitions.length)];
+            const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
+            const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
+            const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
+            const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
+
+            let roomText = `${transition} ${type}\n\n${wall} ${floor}\n\n${neon}`;
+            let sanityImpact = 0;
+            let hasItem = false;
+
+            const hasWaterInInventory = gameState.inventory.includes("Acqua Mandorlina");
+            const randomEvent = Math.random();
+
+            if (randomEvent < 0.25 && !hasWaterInInventory) {
+                roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
+                hasItem = true;
+            } else if (randomEvent > 0.75) {
+                roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
+                sanityImpact = -15;
+            } else if (randomEvent > 0.65 && randomEvent <= 0.75) {
+                roomText += "\n\nAvverti un brivido improvviso. Oltre la parete davanti a te, risuona il rumore di passi bagnati che si muovono rapidi.";
+                sanityImpact = -20;
+            }
+
+            // MOTORE HORROR: ATTIVAZIONE SUONI CASUALI MA RARI (20% DI PROBABILITÀ PER STANZA)
+            if (gameState.roomCount > 1 && Math.random() < 0.20) {
+                const soundType = Math.floor(Math.random() * 4);
+                setTimeout(() => {
+                    if (soundType === 0) {
+                        playProceduralFootstep();
+                        playProceduralFootstep();
+                        console.log("Audio Event: Passi sintetizzati nell'ombra.");
+                    } else if (soundType === 1) {
+                        playProceduralBreath();
+                        console.log("Audio Event: Respiro sintetizzato vicino.");
+                    } else if (soundType === 2) {
+                        playProceduralThud();
+                        console.log("Audio Event: Porta sbattuta sintetizzata in lontananza.");
+                    } else {
+                        playProceduralScreech();
+                        console.log("Audio Event: Eco di urlo sintetizzato.");
+                    }
+                }, 400); // Piccolo delay dall'ingresso per spiazzare il giocatore
+            }
+
+            const selectedTexts = getRandomChoices(movementChoicesPool, 3);
+            let choices = selectedTexts.map(text => ({ text: text, action: "move" }));
+
+            if (hasItem) {
+                choices.unshift({ text: "Raccogli l'Acqua Mandorlina", action: "loot" });
+            }
+
+            if (gameState.sanity < 30) {
+                const fakeChoices = [
+                    { text: "Girati di scatto. Qualcuno sta respirando sul tuo collo.", action: "madness_panic" },
+                    { text: "Gratta le pareti. C'è un'uscita dietro la carta da parati.", action: "madness_panic" },
+                    { text: "IL GIALLO. IL GIALLO. IL GIALLO.", action: "madness_panic" }
+                ];
+                choices.push(fakeChoices[Math.floor(Math.random() * fakeChoices.length)]);
+            }
+
+            gameState.currentRoomData = {
+                text: roomText,
+                sanityImpact: sanityImpact,
+                choices: choices
+            };
+        }
+
+        function renderGame() {
+            if (gameState.roomCount === 0) return;
+
+            if (gameState.sanity <= 0) {
+                gameState.sanity = 0;
+                executeGameOver();
+                return;
+            }
+
+            const room = gameState.currentRoomData;
+            const body = document.getElementById("body-screen");
+
+            if (room.sanityImpact < 0) {
+                gameState.sanity += room.sanityImpact;
+                room.sanityImpact = 0; 
+                triggerGlitchEffect(true);
+                if (gameState.sanity <= 0) { renderGame(); return; }
+            } else if (gameState.sanity < 30) {
+                body.classList.add("insane-bg");
+                if (audioInitialized && filterEffect && noiseGenerator) {
+                    filterEffect.frequency.rampTo(90, 0.5); 
+                    noiseGenerator.volume.rampTo(-6, 0.5);
+                }
+            } else {
+                body.classList.remove("insane-bg");
+                if (audioInitialized && filterEffect && noiseGenerator) {
+                    filterEffect.frequency.rampTo(200, 0.5);
+                    noiseGenerator.volume.rampTo(-12, 0.5);
+                }
+            }
+
+            document.getElementById("stat-location").innerText = `#${gameState.roomCount}`;
+            
+            const sanityElement = document.getElementById("stat-sanity");
+            sanityElement.innerText = gameState.sanity + "%";
+            sanityElement.style.color = gameState.sanity < 30 ? "var(--terminal-red)" : "var(--text-dark)";
+
+            const inventoryElement = document.getElementById("stat-inventory");
+            if (gameState.inventory.length === 0) {
+                inventoryElement.innerText = "Vuoto";
+            } else {
+                inventoryElement.innerHTML = "";
+                gameState.inventory.forEach((item, index) => {
+                    const itemSpan = document.createElement("span");
+                    itemSpan.innerText = item;
+                    const useBtn = document.createElement("button");
+                    useBtn.innerText = "BEVI";
+                    useBtn.classList.add("use-item-btn");
+                    useBtn.addEventListener("click", () => useAlmondWater(index));
+                    itemSpan.appendChild(useBtn);
+                    inventoryElement.appendChild(itemSpan);
+                });
+            }
+
+            document.getElementById("text-display").innerText = applyMadnessToText(room.text);
+            document.getElementById("text-display").scrollTop = 0;
+
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+
+            room.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.classList.add("choice-btn");
+                button.innerText = choice.text;
+                
+                button.addEventListener("click", () => {
+                    if (choice.action === "move") {
+                        generateRandomRoom();
+                    } else if (choice.action === "loot") {
+                        if (!gameState.inventory.includes("Acqua Mandorlina")) {
+                            gameState.inventory.push("Acqua Mandorlina");
+                        }
+                        room.choices = room.choices.filter(c => c.action !== "loot");
+                        room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
+                    } else if (choice.action === "madness_panic") {
+                        gameState.sanity -= 15;
+                        generateRandomRoom();
+                    }
+                    renderGame();
+                });
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        function useAlmondWater(index) {
+            gameState.inventory.splice(index, 1);
+            gameState.sanity = Math.min(gameState.sanity + 35, 100);
+            renderGame();
+        }
+
+        function triggerGlitchEffect(activate) {
+            const body = document.getElementById("body-screen");
+            if (activate) {
+                body.classList.add("glitch-bg");
+                setTimeout(() => { body.classList.remove("glitch-bg"); }, 1000);
+            }
+        }
+
+        function executeGameOver() {
+            if (audioInitialized && noiseGenerator) {
+                noiseGenerator.stop();
+                audioInitialized = false;
+            }
+            document.getElementById("body-screen").classList.add("glitch-bg");
+            document.getElementById("stat-sanity").innerText = "0% - FOLLIA";
+            document.getElementById("text-display").innerText = `La tua mente ha ceduto dopo aver esplorato ${gameState.roomCount} stanze.\n\nIl labirinto giallo ha cancellato i tuoi pensieri e la tua identità. Non stai più cercando un'uscita. Sei diventato parte delle Backrooms.`;
+            
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+            const restartBtn = document.createElement("button");
+            restartBtn.classList.add("choice-btn");
+            restartBtn.innerText = "Riavvia la simulazione (Ricomincia)";
+            restartBtn.addEventListener("click", () => {
+                gameState.roomCount = 0;
+                gameState.sanity = 100;
+                gameState.inventory = [];
+                document.getElementById("body-screen").classList.remove("glitch-bg");
+                document.getElementById("body-screen").classList.remove("insane-bg");
+                initGame();
+            });
+            choicesContainer.appendChild(restartBtn);
+        }
+
+        function initGame() {
+            initAudio();
+            document.getElementById("splash-screen").style.display = "none";
+            generateRandomRoom();
+            renderGame();
+        }
+    </script>
+</body>
+</html>
