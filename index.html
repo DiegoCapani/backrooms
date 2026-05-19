@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 20)</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        :root {
+            --bg-yellow: #e2ce73;       
+            --shadow-yellow: #bfae59;   
+            --text-dark: #1f1d16;       
+            --terminal-red: #9e0000;    
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            transition: background-color 1s ease;
+        }
+
+        /* Scanlines CRT & Vignette */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.07) 50%);
+            z-index: 999;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.35) 100%);
+            z-index: 998;
+            pointer-events: none;
+        }
+
+        /* ANIMAZIONE CRISI PSICOTICA: PULSAZIONE LENTA GIALLO -> ROSSO */
+        @keyframes madnessPulse {
+            0% { background-color: var(--bg-yellow); }
+            50% { background-color: #aa3a3a; }
+            100% { background-color: var(--bg-yellow); }
+        }
+
+        .insane-bg {
+            animation: madnessPulse 4s ease-in-out infinite, shakeX 4s ease-in-out infinite;
+            opacity: 0.95;
+        }
+
+        /* SPLASH SCREEN INTERATTIVA */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-yellow);
+            color: var(--text-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #splash-container {
+            max-width: 540px;
+            border: 2px dashed var(--text-dark);
+            padding: 35px 25px;
+            background-color: rgba(226, 206, 115, 0.85);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .splash-title {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin: 0 0 4px 0;
+            color: var(--text-dark);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .splash-subtitle {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin: 0 0 25px 0;
+            opacity: 0.8;
+            font-weight: bold;
+        }
+
+        .audio-alert {
+            border: 1px solid var(--text-dark);
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-size: 0.8rem;
+            font-weight: bold;
+            line-height: 1.4;
+            background-color: rgba(0, 0, 0, 0.03);
+            max-width: 100%;
+        }
+
+        .audio-icon {
+            font-size: 1.4rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .start-btn {
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+            border: none;
+            padding: 16px 32px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 0 #12110d;
+            transition: all 0.1s ease;
+            width: 100%;
+        }
+
+        .start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #12110d;
+        }
+
+        .developer-credits {
+            font-size: 0.75rem;
+            margin-top: 20px;
+            letter-spacing: 1px;
+            font-weight: bold;
+            opacity: 0.9;
+        }
+
+        /* VIEWPORT STRUTTURALE MOBILE-SAFE */
+        #main-viewport {
+            position: absolute;
+            top: 0; bottom: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 640px;
+            height: 100%; 
+            border: 3px double var(--text-dark);
+            padding: 15px;
+            background-color: rgba(226, 206, 115, 0.95); 
+            backdrop-filter: blur(1px);
+            z-index: 20; 
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header-area { flex-shrink: 0; }
+
+        #game-title {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 0;
+            text-transform: uppercase;
+            border-bottom: 3px double var(--text-dark);
+            padding-bottom: 4px;
+        }
+
+        #game-subtitle {
+            text-align: center;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            margin: 6px 0 8px 0;
+            color: #1f1d16;
+            font-weight: bold;
+        }
+
+        #status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--text-dark);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .stat-label { color: #5c553a; }
+        .stat-val { color: var(--text-dark); }
+
+        #inventory-container { display: flex; gap: 3px; align-items: center; }
+
+        .use-item-btn {
+            background: var(--text-dark);
+            color: var(--bg-yellow);
+            border: none;
+            padding: 2px 6px;
+            font-family: inherit;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+
+        #text-display {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+            white-space: pre-line;
+            font-weight: 600;
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-dark) transparent;
+        }
+
+        #text-display::-webkit-scrollbar { width: 4px; }
+        #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
+
+        #choices-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            flex-shrink: 0;
+            width: 100%;
+            padding-bottom: env(safe-area-inset-bottom, 0px); 
+        }
+
+        .choice-btn {
+            background-color: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--text-dark);
+            padding: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            font-weight: bold;
+            width: 100%;
+            word-wrap: break-word;
+        }
+
+        @media (hover: hover) {
+            .choice-btn:hover {
+                background-color: var(--text-dark);
+                color: var(--bg-yellow);
+                padding-left: 22px;
+            }
+            .choice-btn:hover::before { content: "> "; position: absolute; left: 8px; }
+        }
+
+        .choice-btn:active {
+            background-color: var(--text-dark);
+            color: var(--bg-yellow);
+        }
+
+        .glitch-bg { animation: shakeX 1s ease-in-out 1; }
+
+        @media (max-height: 520px) {
+            #game-container { padding: 10px; }
+            #game-subtitle { display: none; }
+            #text-display { font-size: 0.95rem; margin-bottom: 6px; }
+            .choice-btn { padding: 8px 10px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body id="body-screen">
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div id="splash-container" class="animate__animated animate__fadeIn">
+            <h1 class="splash-title">THE BACKROOMS</h1>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 20)</div>
+            
+            <p style="font-size: 0.9rem; line-height: 1.6; text-align: left; color: #1f1d16; font-weight: bold; margin: 0 0 15px 0; border-left: 3px solid var(--terminal-red); padding-left: 10px;">
+                Non ricordi come sia successo. Un passo falso, uno scivolone fuori dalla realtà, e la consistenza stessa del mondo si è spezzata. Sei sprofondato qui. Un labirinto infinito di moquette umida, pareti gialle asettiche e l'ossessivo, assordante ronzio dei neon. Non c'è un'uscita logica. Non sei solo. Ascolta attentamente ogni singola anomalia d'ambiente... o la tua mente cederà alla follia.
+            </p>
+
+            <div class="audio-alert">
+                <span class="audio-icon">[ 🎧 ]</span>
+                RACCOMANDAZIONE: Per un'esperienza immersiva e per percepire i segnali di minaccia nell'ombra, si raccomanda caldamente l'uso delle cuffie.
+            </div>
+
+            <button class="start-btn" onclick="initGame()">Entra</button>
+            
+            <div class="developer-credits">Developed by Diego Capani</div>
+        </div>
+    </div>
+
+    <!-- MAIN VIEWPORT -->
+    <div id="main-viewport">
+        <div id="game-container">
+            <div id="header-area">
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 20</span></div>
+                <div id="game-subtitle">Developed by Diego Capani</div>
+
+                <div id="status-bar">
+                    <div><span class="stat-label">STANZA:</span> <span id="stat-location" class="stat-val">#0</span></div>
+                    <div><span class="stat-label">FOLLIA:</span> <span id="stat-sanity" class="stat-val">0%</span></div>
+                    <div id="inventory-container"><span class="stat-label">ZAINO:</span> <span id="stat-inventory" class="stat-val">Vuoto</span></div>
+                </div>
+            </div>
+
+            <div id="text-display"></div>
+            <div id="choices-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAZIONE ENGINE AUDIO
+        let audioInitialized = false;
+        let noiseGenerator = null;
+        let filterEffect = null;
+        
+        // Strumenti di sintesi per la Sirena Cupa Pulsante (Follia >= 80%)
+        let sirenOsc = null;
+        let sirenLFO = null;
+
+        // FUNZIONE IMMERSIONE COMMUTAZIONE FULLSCREEN (Nasconde URL)
+        function enableFullscreen() {
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch(err => console.log("Fullscreen bloccato o non supportato:", err));
+            } else if (docEl.mozRequestFullScreen) { /* Firefox */
+                docEl.mozRequestFullScreen();
+            } else if (docEl.webkitRequestFullscreen) { /* Chrome, Safari, Opera */
+                docEl.webkitRequestFullscreen();
+            } else if (docEl.msRequestFullscreen) { /* IE/Edge */
+                docEl.msRequestFullscreen();
+            }
+        }
+
+        async function initAudio() {
+            if (audioInitialized) return;
+            try {
+                await Tone.start();
+                noiseGenerator = new Tone.Noise("pink");
+                filterEffect = new Tone.Filter({ type: "lowpass", frequency: 180, Q: 1.5 });
+                noiseGenerator.volume.value = -15;
+                noiseGenerator.connect(filterEffect);
+                filterEffect.toDestination();
+                noiseGenerator.start();
+                
+                // Inizializzazione Sintetizzatore Sirena Cupa
+                sirenOsc = new Tone.Oscillator(75, "sawtooth");
+                const sirenFilter = new Tone.Filter(140, "lowpass");
+                
+                // VOLUME RIDOTTO DEL 50% (-6dB) come da Build 19
+                sirenLFO = new Tone.LFO(1.5, -51, -14).connect(sirenOsc.volume); 
+                
+                sirenOsc.connect(sirenFilter);
+                sirenFilter.toDestination();
+                
+                audioInitialized = true;
+            } catch (e) {
+                console.error("Errore audio:", e);
+            }
+        }
+
+        function toggleSiren(play) {
+            if (!audioInitialized || !sirenOsc || !sirenLFO) return;
+            if (play) {
+                if (sirenOsc.state !== "started") {
+                    sirenOsc.start();
+                    sirenLFO.start();
+                }
+            } else {
+                if (sirenOsc.state === "started") {
+                    sirenOsc.stop();
+                    sirenLFO.stop();
+                }
+            }
+        }
+
+        // ==========================================
+        // ARCHITETTURA PROCEDURALE AUDIO (40 TOTALI)
+        // ==========================================
+
+        function playProceduralFootstep() {
+            if (!audioInitialized) return;
+            const lowFilter = new Tone.Filter(160, "lowpass").toDestination();
+            const noise = new Tone.Noise("pink").connect(lowFilter);
+            noise.volume.setValueAtTime(4, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.18);
+            noise.start();
+            setTimeout(() => { noise.stop(); lowFilter.dispose(); noise.dispose(); }, 250);
+        }
+
+        function playProceduralFastRunning() {
+            if (!audioInitialized) return;
+            for(let i = 0; i < 7; i++) {
+                setTimeout(() => {
+                    const lowFilter = new Tone.Filter(220, "lowpass").toDestination();
+                    const noise = new Tone.Noise("pink").connect(lowFilter);
+                    noise.volume.setValueAtTime(5, Tone.now()); 
+                    noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.08);
+                    noise.start();
+                    setTimeout(() => { noise.stop(); lowFilter.dispose(); noise.dispose(); }, 120);
+                }, i * 110);
+            }
+        }
+
+        function playProceduralDoorSlam() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(55, "square").toDestination();
+            const filter = new Tone.Filter(130, "lowpass").toDestination();
+            const noise = new Tone.Noise("white").toDestination();
+            osc.connect(filter);
+            osc.volume.setValueAtTime(10, Tone.now()); 
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.45);
+            noise.volume.setValueAtTime(4, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.3);
+            osc.start(); noise.start();
+            setTimeout(() => { osc.stop(); noise.stop(); osc.dispose(); filter.dispose(); noise.dispose(); }, 500);
+        }
+
+        function playProceduralGlassShatter() {
+            if (!audioInitialized) return;
+            const filter = new Tone.Filter(3800, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(6, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.35);
+            noise.start();
+            setTimeout(() => {
+                const osc = new Tone.Oscillator(3000, "sine").toDestination();
+                osc.volume.setValueAtTime(0, Tone.now());
+                osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.12);
+                osc.start();
+                setTimeout(() => { osc.stop(); osc.dispose(); }, 150);
+            }, 40);
+            setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 450);
+        }
+
+        function playProceduralScream() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(620, "sawtooth").toDestination();
+            const filter = new Tone.Filter(1400, "bandpass").toDestination();
+            const dist = new Tone.Distortion(0.6).toDestination();
+            osc.connect(filter); filter.connect(dist);
+            osc.frequency.setValueAtTime(620, Tone.now());
+            osc.frequency.linearRampToValueAtTime(800, Tone.now() + 0.35);
+            osc.volume.setValueAtTime(6, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.65);
+            osc.start();
+            setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); dist.dispose(); }, 750);
+        }
+
+        function playProceduralBreath() {
+            if (!audioInitialized) return;
+            const filter = new Tone.Filter(450, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(-10, Tone.now());
+            noise.volume.linearRampToValueAtTime(4, Tone.now() + 0.35);
+            noise.volume.linearRampToValueAtTime(-35, Tone.now() + 1.0);
+            noise.start();
+            setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 1100);
+        }
+
+        function playProceduralCry() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(440, "triangle").toDestination();
+            const filter = new Tone.Filter(650, "bandpass").toDestination();
+            osc.connect(filter);
+            osc.volume.setValueAtTime(2, Tone.now());
+            osc.frequency.setValueAtTime(440, Tone.now());
+            osc.frequency.linearRampToValueAtTime(340, Tone.now() + 0.6);
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.8);
+            osc.start();
+            setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 900);
+        }
+
+        function playProceduralThud() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(42, "sine").toDestination();
+            osc.volume.setValueAtTime(12, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.7);
+            osc.start();
+            setTimeout(() => { osc.stop(); osc.dispose(); }, 800);
+        }
+
+        function playProceduralPhoneRing() {
+            if (!audioInitialized) return;
+            const osc1 = new Tone.Oscillator(450, "sine").toDestination();
+            const osc2 = new Tone.Oscillator(490, "sine").toDestination();
+            osc1.volume.setValueAtTime(2, Tone.now());
+            osc2.volume.setValueAtTime(2, Tone.now());
+            osc1.start(); osc2.start();
+            setTimeout(() => { osc1.volume.setValueAtTime(-45, Tone.now()); osc2.volume.setValueAtTime(-45, Tone.now()); }, 220);
+            setTimeout(() => { osc1.volume.setValueAtTime(2, Tone.now()); osc2.volume.setValueAtTime(2, Tone.now()); }, 370);
+            setTimeout(() => { osc1.stop(); osc2.stop(); osc1.dispose(); osc2.dispose(); }, 650);
+        }
+
+        function playProceduralMetallicSound() {
+            if (!audioInitialized) return;
+            const osc = new Tone.Oscillator(140, "sawtooth").toDestination();
+            const filter = new Tone.Filter(2500, "highpass").toDestination();
+            osc.connect(filter);
+            osc.volume.setValueAtTime(4, Tone.now());
+            osc.volume.linearRampToValueAtTime(-40, Tone.now() + 0.75);
+            osc.start();
+            setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 850);
+        }
+
+        // --- I 30 SONORITÀ AGGIUNTIVE ---
+        function playS_NeonOverload() {
+            const osc = new Tone.Oscillator(120, "sawtooth").toDestination();
+            osc.volume.setValueAtTime(8, Tone.now());
+            osc.volume.linearRampToValueAtTime(-40, Tone.now() + 0.4);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 450);
+        }
+        function playS_IndustrialRelay() {
+            const osc = new Tone.Oscillator(90, "triangle").toDestination();
+            osc.volume.setValueAtTime(10, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.05);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 100);
+        }
+        function playS_Infrasub() {
+            const osc = new Tone.Oscillator(30, "sine").toDestination();
+            osc.volume.setValueAtTime(14, Tone.now());
+            osc.volume.linearRampToValueAtTime(-45, Tone.now() + 1.5);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1600);
+        }
+        function playS_DigitalGlitch() {
+            const osc = new Tone.Oscillator(4000, "square").toDestination();
+            osc.volume.setValueAtTime(3, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.15);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 200);
+        }
+        function playS_WallScratch() {
+            const filter = new Tone.Filter(900, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(5, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.5);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 600);
+        }
+        function playS_CeilingThud() {
+            const osc = new Tone.Oscillator(75, "sine").toDestination();
+            osc.volume.setValueAtTime(11, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.2);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 300);
+        }
+        function playS_FastDrip() {
+            let now = Tone.now();
+            for(let i=0; i<5; i++) {
+                const osc = new Tone.Oscillator(1200 - (i*150), "sine").toDestination();
+                osc.volume.setValueAtTime(4, now + (i*0.08));
+                osc.volume.exponentialRampToValueAtTime(-45, now + (i*0.08) + 0.04);
+                osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 500);
+            }
+        }
+        function playS_PipeHiss() {
+            const filter = new Tone.Filter(5000, "lowpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(6, Tone.now());
+            noise.volume.linearRampToValueAtTime(-45, Tone.now() + 0.7);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 800);
+        }
+        function playS_DistortedChild() {
+            const osc = new Tone.Oscillator(260, "triangle").toDestination();
+            osc.volume.setValueAtTime(4, Tone.now());
+            osc.frequency.linearRampToValueAtTime(180, Tone.now() + 0.8);
+            osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.9);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1000);
+        }
+        function playS_DistantEchoScream() {
+            const osc = new Tone.Oscillator(500, "sine").toDestination();
+            const filter = new Tone.Filter(800, "bandpass").toDestination();
+            osc.connect(filter); osc.volume.setValueAtTime(-2, Tone.now());
+            osc.volume.linearRampToValueAtTime(-40, Tone.now() + 1.4);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 1500);
+        }
+        function playS_StructuralCrack() {
+            const filter = new Tone.Filter(400, "highpass").toDestination();
+            const noise = new Tone.Noise("pink").connect(filter);
+            noise.volume.setValueAtTime(7, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.25);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 350);
+        }
+        function playS_ChainDrag() {
+            const osc = new Tone.Oscillator(200, "sawtooth").toDestination();
+            osc.volume.setValueAtTime(2, Tone.now());
+            osc.volume.linearRampToValueAtTime(-45, Tone.now() + 1.2);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1300);
+        }
+        function playS_Flies() {
+            const osc = new Tone.Oscillator(180, "square").toDestination();
+            osc.volume.setValueAtTime(2, Tone.now());
+            osc.frequency.linearRampToValueAtTime(210, Tone.now() + 0.5);
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.6);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 700);
+        }
+        function playS_Heartbeat() {
+            let now = Tone.now();
+            for(let i=0; i<4; i++) {
+                const osc = new Tone.Oscillator(50, "sine").toDestination();
+                osc.volume.setValueAtTime(12, now + (i*0.25));
+                osc.volume.exponentialRampToValueAtTime(-45, now + (i*0.25) + 0.15);
+                osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1500);
+            }
+        }
+        function playS_DoubleBreath() {
+            const filter = new Tone.Filter(300, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(0, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.8);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 900);
+        }
+        function playS_OrganicChewing() {
+            const filter = new Tone.Filter(1200, "lowpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(4, Tone.now());
+            noise.volume.linearRampToValueAtTime(-40, Tone.now() + 0.6);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 700);
+        }
+        function playS_GlassKnock() {
+            const osc = new Tone.Oscillator(1500, "sine").toDestination();
+            osc.volume.setValueAtTime(9, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.05);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 100);
+        }
+        function playS_CoinRoll() {
+            const osc = new Tone.Oscillator(2200, "sine").toDestination();
+            osc.volume.setValueAtTime(3, Tone.now());
+            osc.volume.linearRampToValueAtTime(-40, Tone.now() + 1.1);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1200);
+        }
+        function playS_RadioInterference() {
+            const osc = new Tone.Oscillator(800, "square").toDestination();
+            const dist = new Tone.Distortion(0.8).toDestination();
+            osc.connect(dist); osc.volume.setValueAtTime(2, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.4);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); dist.dispose(); }, 500);
+        }
+        function playS_Whisper() {
+            const filter = new Tone.Filter(4000, "highpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(3, Tone.now());
+            noise.volume.linearRampToValueAtTime(-45, Tone.now() + 0.5);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 600);
+        }
+        function playS_TotalCutout() {
+            if(noiseGenerator) {
+                noiseGenerator.volume.setValueAtTime(-50, Tone.now());
+                setTimeout(() => { if(noiseGenerator) noiseGenerator.volume.setValueAtTime(-15, Tone.now()); }, 600);
+            }
+        }
+        function playS_DragFoot() {
+            const filter = new Tone.Filter(350, "lowpass").toDestination();
+            const noise = new Tone.Noise("pink").connect(filter);
+            noise.volume.setValueAtTime(5, Tone.now());
+            noise.volume.linearRampToValueAtTime(-40, Tone.now() + 0.8);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 900);
+        }
+        function playS_WallpaperTear() {
+            const filter = new Tone.Filter(2000, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(8, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.3);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 400);
+        }
+        function playS_HeavyDrop() {
+            const osc = new Tone.Oscillator(65, "triangle").toDestination();
+            osc.volume.setValueAtTime(13, Tone.now());
+            osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.5);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 600);
+        }
+        function playS_DistantAlarm() {
+            const osc = new Tone.Oscillator(380, "sine").toDestination();
+            const filter = new Tone.Filter(500, "lowpass").toDestination();
+            osc.connect(filter); osc.volume.setValueAtTime(-4, Tone.now());
+            osc.volume.linearRampToValueAtTime(-45, Tone.now() + 1.5);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 1600);
+        }
+        function playS_HandClap() {
+            const filter = new Tone.Filter(1000, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(11, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.08);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 150);
+        }
+        function playS_Keyboard() {
+            let now = Tone.now();
+            for(let i=0; i<8; i++) {
+                const osc = new Tone.Oscillator(1600, "sine").toDestination();
+                osc.volume.setValueAtTime(3, now + (i * 0.05));
+                osc.volume.exponentialRampToValueAtTime(-40, now + (i * 0.05) + 0.02);
+                osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 600);
+            }
+        }
+        function playS_MechanicalGroan() {
+            const osc = new Tone.Oscillator(85, "sawtooth").toDestination();
+            osc.volume.setValueAtTime(6, Tone.now());
+            osc.volume.linearRampToValueAtTime(-40, Tone.now() + 0.9);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1000);
+        }
+        function playS_ClothRustle() {
+            const filter = new Tone.Filter(1500, "bandpass").toDestination();
+            const noise = new Tone.Noise("white").connect(filter);
+            noise.volume.setValueAtTime(4, Tone.now());
+            noise.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.4);
+            noise.start(); setTimeout(() => { noise.stop(); filter.dispose(); noise.dispose(); }, 500);
+        }
+        function playS_Tinnitus() {
+            const osc = new Tone.Oscillator(4200, "sine").toDestination();
+            osc.volume.setValueAtTime(-2, Tone.now());
+            osc.volume.linearRampToValueAtTime(-50, Tone.now() + 1.8);
+            osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 2000);
+        }
+
+        function triggerRandomJumpScareSound() {
+            const poolSize = 40;
+            const index = Math.floor(Math.random() * poolSize);
+            switch(index) {
+                case 0: playProceduralFootstep(); break;
+                case 1: playProceduralFastRunning(); break;
+                case 2: playProceduralDoorSlam(); break;
+                case 3: playProceduralGlassShatter(); break;
+                case 4: playProceduralScream(); break;
+                case 5: playProceduralBreath(); break;
+                case 6: playProceduralCry(); break;
+                case 7: playProceduralThud(); break;
+                case 8: playProceduralPhoneRing(); break;
+                case 9: playProceduralMetallicSound(); break;
+                case 10: playS_NeonOverload(); break;
+                case 11: playS_IndustrialRelay(); break;
+                case 12: playS_Infrasub(); break;
+                case 13: playS_DigitalGlitch(); break;
+                case 14: playS_WallScratch(); break;
+                case 15: playS_CeilingThud(); break;
+                case 16: playS_FastDrip(); break;
+                case 17: playS_PipeHiss(); break;
+                case 18: playS_DistortedChild(); break;
+                case 19: playS_DistantEchoScream(); break;
+                case 20: playS_StructuralCrack(); break;
+                case 21: playS_ChainDrag(); break;
+                case 22: playS_Flies(); break;
+                case 23: playS_Heartbeat(); break;
+                case 24: playS_DoubleBreath(); break;
+                case 25: playS_OrganicChewing(); break;
+                case 26: playS_GlassKnock(); break;
+                case 27: playS_CoinRoll(); break;
+                case 28: playS_RadioInterference(); break;
+                case 29: playS_Whisper(); break;
+                case 30: playS_TotalCutout(); break;
+                case 31: playS_DragFoot(); break;
+                case 32: playS_WallpaperTear(); break;
+                case 33: playS_HeavyDrop(); break;
+                case 34: playS_DistantAlarm(); break;
+                case 35: playS_HandClap(); break;
+                case 36: playS_Keyboard(); break;
+                case 37: playS_MechanicalGroan(); break;
+                case 38: playS_ClothRustle(); break;
+                case 39: playS_Tinnitus(); break;
+            }
+        }
+
+        // STATO DEL GIOCO (FOLLIA INCREMENTALE)
+        let gameState = {
+            roomCount: 0,
+            madness: 0, 
+            inventory: [],
+            currentRoomData: {}
+        };
+
+        const movementTransitions = [
+            "Superi la soglia e ti ritrovi in", "Svolti l'ennesimo angolo cieco, sbucando in",
+            "I tuoi passi ti conducono all'interno di", "Prosegui a tentoni finché lo spazio non si apre su",
+            "Cammini senza meta finché non entri in", "Ti lasci alle spalle il corridoio precedente per penetrare in",
+            "Strisciando rasente la parete, accedi a", "Avanzi stancamente, finendo dritto dentro",
+            "Il percorso si snoda bruscamente, rivelando", "Oltrepassi una fessura nel muro e ti ritrovi in"
+        ];
+
+        const roomTypes = [
+            "un corridoio ad angolo retto.", "una stanza quadrata completamente vuota.", 
+            "uno snodo a tre vie.", "un immenso salone pilastrato.", 
+            "un vicolo cieco claustrofobico.", "una serie di uffici comunicanti senza porte.",
+            "un disimpegno dal soffitto insolitamente basso.", "una diramazione simmetrica e opprimente."
+        ];
+
+        const wallDetails = [
+            "Le pareti mostrano una carta da parati gialla che si sta scollando, piena di vecchie macchie.",
+            "Tutto intorno, le superfici verticali sono modellate in un giallo accecante e uniforme.",
+            "Osservando i muri, noti che qualcuno ha tracciato delle frecce sbiadite con un pennarello.",
+            "Lo sfondo visivo sembra quasi tremare se provi a fissare le pareti gialle.",
+            "I divisori di cartongesso ai lati appaiono asimmetrici, rivestiti della solita trama ingiallita."
+        ];
+
+        const floorDetails = [
+            "A terra, la moquette è zuppa e produce un fastidioso rumore bagnato.",
+            "Il pavimento emana un odore acido di muffa e polvere stantia.",
+            "Sotto i piedi, il vecchio linoleum scricchiola pesantemente a ogni minimo passo.",
+            "Guardando in basso, strisce di moquette grigia sono state strappate via con violenza."
+        ];
+
+        const neonDetails = [
+            "In alto, le luci al neon emettono un ronzio elettrico costante e innaturale.",
+            "Sopra la tua testa, uno dei tubi al neon sfarfalla proiettando ombre instabili.",
+            "La plafoniera sul soffitto emana una luce fissa, fredda e ingannevole.",
+            "Dalle lampade sospese proviene quel ronzio ossessivo che vibra nei timpani."
+        ];
+
+        const objectDetails = [
+            "Al centro dello spazio noti un mucchio di sedie per ufficio in plastica impilate e accatastate in modo precario.",
+            "Contro il lato del muro è appoggiata una vecchia scrivania in finto legno laminato, con i cassetti divelti.",
+            "Sul pavimento sono sparse decine di palline da ping pong bianche che si muovono impercettibilmente sulla moquette.",
+            "In un angolo giace uno schedario metallico arrugginito, con faldoni vuoti e bagnati sparsi intorno.",
+            "C'è un monitor CRT a tubo catodico posato a terra; lo schermo spento riflette in modo distorto il giallo dei neon.",
+            "Un distributore automatico di merendine vuoto e privo di vetrina è incassato in una rientranza strutturale.",
+            "Accanto a un pilastro si trova un ventilatore a piantana arrugginito, le cui pale girano lentissime senza produrre aria.",
+            "Vedi una fila di tre telefoni fissi a muro con i cavi intrecciati e tranciati di netto che pendono verso il pavimento.",
+            "A terra giace una lavagna bianca da conferenze coperta di indecifrabili calcoli e cancellature ossessive.",
+            "Una pianta finta in plastica, completamente coperta da uno sfarzoso strato di polvere grigia, occupa un angolo morto.",
+            "Ci sono tre scatoloni di cartone bagnati accatastati; uno di essi è sfondato e rivela moduli cartacei completamente in bianco.",
+            "Un vecchio orologio analogico da parete è appeso storto; le lancette sono ferme, ma emette un ticchettio metallico intermittente.",
+            "Sul pavimento noti una pozzanghera scura circondata di bicchieri di plastica monouso schiacciati.",
+            "C'è un appendiabiti metallico isolato al centro della stanza, deformato come se fosse stato piegato a forza.",
+            "Un pallet di legno marcio blocca parzialmente il passaggio, costringendoti a girargli attorno.",
+            "Vedi una sedia a rotelle da ospedale abbandonata di traverso, con una ruota che gira ancora nel silenzio."
+        ];
+
+        const anomalyDetails = [
+            "Per una frazione di secondo, scorgi una sagoma umana scura e immobile infossata contro l'angolo del corridoio in fondo. Svanisce non appena provi a mettere a fuoco.",
+            "In lontananza, sul limitare della luce del neon, intravedi il profilo nero e distorto di un animale quadrupede che scivola silenzioso dietro una svolta.",
+            "Una silhouette antropomorfa completamente scura si staglia contro il riflesso della parete successiva. Rimane ferma, senza volto, prima di dissolversi nel nulla.",
+            "Dalla penombra della stanza adiacente spunta una figura umana scarna e scura; solleva un braccio verso di te prima che un neon sfarfalli, facendola sparire."
+        ];
+
+        const movementChoicesPool = [
+            "Prosegui dritto lungo il percorso umido", "Svolti bruscamente l'angolo cieco",
+            "Entra nella stanza di destra superando l'arco", "Esplora lo stretto varco sul lato sinistro",
+            "Forza una porta di legno sbiadita (sembra bloccata)", "Attraversa un'apertura quadrata nel cartongesso",
+            "Segui la fila di neon intermittenti verso il fondo", "Allontanati dalla zona più buia camminando all'indietro",
+            "Infilati in una stretta fessura tra due pareti asimmetriche", "Supera una porta tagliafuoco accostata"
+        ];
+
+        function applyMadnessToText(text) {
+            if (gameState.madness < 80) return text;
+            const glitchChars = ["§", "#", "Ø", "*", "!", "@", "æ", "¶", "??"];
+            let chars = text.split("");
+            for (let i = 0; i < chars.length; i++) {
+                if (Math.random() < 0.15 && chars[i] !== "\n" && chars[i] !== " ") {
+                    chars[i] = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }
+            }
+            return chars.join("");
+        }
+
+        function getRandomChoices(array, count) {
+            let shuffled = [...array].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function generateRandomRoom() {
+            gameState.roomCount++;
+            
+            const transition = movementTransitions[Math.floor(Math.random() * movementTransitions.length)];
+            const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
+            const wall = wallDetails[Math.floor(Math.random() * wallDetails.length)];
+            const floor = floorDetails[Math.floor(Math.random() * floorDetails.length)];
+            const neon = neonDetails[Math.floor(Math.random() * neonDetails.length)];
+            const objectInfo = objectDetails[Math.floor(Math.random() * objectDetails.length)];
+
+            let roomText = `${transition} ${type}\n\n${wall} ${floor} ${neon}\n\n${objectInfo}`;
+            let madnessImpact = 0; 
+            let hasItem = false;
+            let triggeredAnomaly = false;
+
+            if (gameState.roomCount > 1 && Math.random() < 0.07) {
+                const anomaly = anomalyDetails[Math.floor(Math.random() * anomalyDetails.length)];
+                roomText += `\n\n[ATTENZIONE]: ${anomaly}`;
+                madnessImpact = 25; 
+                triggeredAnomaly = true;
+            }
+
+            if (!triggeredAnomaly) {
+                const hasWaterInInventory = gameState.inventory.includes("Acqua Mandorlina");
+                const randomEvent = Math.random();
+
+                if (randomEvent < 0.25 && !hasWaterInInventory) {
+                    roomText += "\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.";
+                    hasItem = true;
+                } else if (randomEvent > 0.85) {
+                    roomText += "\n\nUn senso di vuoto assoluto ti colpisce lo stomaco. Senti la mente vacillare.";
+                    madnessImpact = 15; 
+                }
+            }
+
+            if (gameState.roomCount > 1) {
+                if (triggeredAnomaly) {
+                    setTimeout(() => { Math.random() > 0.5 ? playProceduralBreath() : playProceduralScream(); }, 200);
+                } else if (Math.random() < 0.10) { 
+                    setTimeout(() => { triggerRandomJumpScareSound(); }, 350);
+                }
+            }
+
+            const selectedTexts = getRandomChoices(movementChoicesPool, 3);
+            let choices = selectedTexts.map(text => ({ text: text, action: "move" }));
+
+            if (hasItem) {
+                choices.unshift({ text: "Raccogli l'Acqua Mandorlina", action: "loot" });
+            }
+
+            if (gameState.madness >= 80) {
+                const fakeChoices = [
+                    { text: "Girati di scatto. Qualcuno sta respirando sul tuo collo.", action: "madness_panic" },
+                    { text: "Gratta le pareti. C'è un'uscita dietro la carta da parati.", action: "madness_panic" },
+                    { text: "IL GIALLO. IL GIALLO. IL GIALLO.", action: "madness_panic" }
+                ];
+                choices.push(fakeChoices[Math.floor(Math.random() * fakeChoices.length)]);
+            }
+
+            gameState.currentRoomData = {
+                text: roomText,
+                madnessImpact: madnessImpact,
+                choices: choices
+            };
+        }
+
+        function renderGame() {
+            if (gameState.roomCount === 0) return;
+
+            if (gameState.madness >= 100) {
+                gameState.madness = 100;
+                executeGameOver();
+                return;
+            }
+
+            const room = gameState.currentRoomData;
+            const body = document.getElementById("body-screen");
+
+            if (room.madnessImpact > 0) {
+                gameState.addMadness = room.madnessImpact;
+                gameState.madness += room.madnessImpact;
+                room.madnessImpact = 0; 
+                triggerGlitchEffect(true);
+                if (gameState.madness >= 100) { renderGame(); return; }
+            }
+
+            if (gameState.madness >= 80) {
+                body.classList.add("insane-bg"); 
+                toggleSiren(true); 
+                if (audioInitialized && filterEffect && noiseGenerator) {
+                    filterEffect.frequency.rampTo(80, 0.5); 
+                    noiseGenerator.volume.rampTo(-3, 0.5);
+                }
+            } else {
+                body.classList.remove("insane-bg");
+                toggleSiren(false); 
+                if (audioInitialized && filterEffect && noiseGenerator) {
+                    filterEffect.frequency.rampTo(180, 0.5);
+                    noiseGenerator.volume.rampTo(-15, 0.5);
+                }
+            }
+
+            document.getElementById("stat-location").innerText = `#${gameState.roomCount}`;
+            
+            const sanityElement = document.getElementById("stat-sanity");
+            sanityElement.innerText = gameState.madness + "%";
+            sanityElement.style.color = gameState.madness >= 80 ? "var(--terminal-red)" : "var(--text-dark)";
+
+            const inventoryElement = document.getElementById("stat-inventory");
+            if (gameState.inventory.length === 0) {
+                inventoryElement.innerText = "Vuoto";
+            } else {
+                inventoryElement.innerHTML = "";
+                gameState.inventory.forEach((item, index) => {
+                    const itemSpan = document.createElement("span");
+                    itemSpan.innerText = item;
+                    const useBtn = document.createElement("button");
+                    useBtn.innerText = "BEVI";
+                    useBtn.classList.add("use-item-btn");
+                    useBtn.addEventListener("click", () => useAlmondWater(index));
+                    itemSpan.appendChild(useBtn);
+                    inventoryElement.appendChild(itemSpan);
+                });
+            }
+
+            document.getElementById("text-display").innerText = applyMadnessToText(room.text);
+            document.getElementById("text-display").scrollTop = 0;
+
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+
+            room.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.classList.add("choice-btn");
+                button.innerText = choice.text;
+                
+                button.addEventListener("click", () => {
+                    if (choice.action === "move") {
+                        generateRandomRoom();
+                    } else if (choice.action === "loot") {
+                        if (!gameState.inventory.includes("Acqua Mandorlina")) {
+                            gameState.inventory.push("Acqua Mandorlina");
+                        }
+                        room.choices = room.choices.filter(c => c.action !== "loot");
+                        room.text = room.text.replace("\n\nSu un angolo della moquette noti una bottiglietta dimenticata di Acqua Mandorlina.", "\n\nHai messo la bottiglia nello zaino.");
+                    } else if (choice.action === "madness_panic") {
+                        gameState.madness += 15;
+                        generateRandomRoom();
+                    }
+                    renderGame();
+                });
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        function useAlmondWater(index) {
+            if (gameState.madness >= 100) return;
+
+            gameState.inventory.splice(index, 1);
+            gameState.madness = Math.max(gameState.madness - 35, 0); 
+            renderGame();
+        }
+
+        function triggerGlitchEffect(activate) {
+            const body = document.getElementById("body-screen");
+            if (activate) {
+                body.classList.add("glitch-bg");
+                setTimeout(() => { body.classList.remove("glitch-bg"); }, 1000);
+            }
+        }
+
+        function executeGameOver() {
+            toggleSiren(false);
+            if (audioInitialized && noiseGenerator) {
+                noiseGenerator.stop();
+                audioInitialized = false;
+            }
+            
+            document.getElementById("body-screen").classList.add("glitch-bg");
+            document.getElementById("body-screen").classList.remove("insane-bg");
+            document.getElementById("stat-sanity").innerText = "100% - COMA PSICOTICO";
+            document.getElementById("stat-inventory").innerText = "Inaccessibile";
+            
+            document.getElementById("text-display").innerText = `La tua mente ha ceduto completamente dopo aver esplorato ${gameState.roomCount} stanze.\n\nLa Follia ha saturato i tuoi canali cerebrali. Il labirinto giallo ha cancellato i tuoi pensieri e la tua identità e ti ha assimilato. Non puoi fare altro.\n\nDeveloped by Diego Capani.`;
+            
+            const choicesContainer = document.getElementById("choices-container");
+            choicesContainer.innerHTML = "";
+            const restartBtn = document.createElement("button");
+            restartBtn.classList.add("choice-btn");
+            restartBtn.innerText = "Riavvia la simulazione (Ricomincia)";
+            restartBtn.addEventListener("click", () => {
+                gameState.roomCount = 0;
+                gameState.madness = 0;
+                gameState.inventory = [];
+                document.getElementById("body-screen").classList.remove("glitch-bg");
+                document.getElementById("body-screen").classList.remove("insane-bg");
+                initGame();
+            });
+            choicesContainer.appendChild(restartBtn);
+        }
+
+        function initGame() {
+            enableFullscreen(); // Attivazione schermo intero immediata al click utente
+            initAudio();
+            document.getElementById("splash-screen").style.display = "none";
+            generateRandomRoom();
+            renderGame();
+        }
+    </script>
+</body>
+</html>
