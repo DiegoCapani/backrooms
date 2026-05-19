@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>THE BACKROOMS: INFINITE DESCENT (Build 23)</title>
+    <title>THE BACKROOMS: INFINITE DESCENT (Build 24)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- INCLUSIONE DELLA LIBRERIA AUDIO ESTERNA (Tone.js) -->
@@ -208,7 +208,7 @@
             align-items: center;
             border-bottom: 1px dashed var(--text-dark);
             padding-bottom: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: bold;
             font-size: 0.8rem;
             flex-wrap: wrap;
@@ -232,35 +232,35 @@
             font-weight: bold;
         }
 
+        /* AREA DI NARRAZIONE PRINCIPALE IN ALTO: Guadagna spazio verticale grazie alla riorganizzazione */
         #text-display {
-            font-size: 1rem;
-            line-height: 1.4;
-            margin-bottom: 8px;
-            height: 155px;
-            max-height: 155px;
-            overflow-y: auto;
+            font-size: 1.15rem; /* Aumentato di circa 2 punti rispetto al precedente 1rem (~16px -> ~18.5px) */
+            line-height: 1.45;
+            margin-bottom: 15px;
             padding-right: 5px;
             white-space: pre-line;
             font-weight: 600;
             scrollbar-width: thin;
             scrollbar-color: var(--text-dark) transparent;
-            flex-shrink: 0;
+            
+            flex-grow: 1; /* Spinge via gli elementi sottostanti, occupando tutta l'altezza utile superiore */
+            overflow-y: auto;
         }
 
         #text-display::-webkit-scrollbar { width: 4px; }
         #text-display::-webkit-scrollbar-thumb { background-color: var(--text-dark); }
 
-        /* BOX CONTENITORE CAMERA - RAPPORTO DI FORMA CINEMATICO 16:9 */
+        /* BOX CONTENITORE CAMERA - POSIZIONATO IN BASSO, SOPRA I PULSANTI */
         #camera-container {
             position: relative;
             width: 100%;
-            aspect-ratio: 16 / 9; /* Forza il box in 16:9 occupando meno spazio in altezza */
+            aspect-ratio: 16 / 9;
             margin-bottom: 12px;
             border: 2px solid var(--text-dark);
             background-color: #000000; 
             overflow: hidden;
             box-shadow: 0 0 15px rgba(226, 206, 115, 0.4);
-            flex-shrink: 0; /* Impedisce al flexbox di deformare il rapporto d'aspetto */
+            flex-shrink: 0; /* Mantiene rigido il box 16:9 */
         }
 
         #camera-feed {
@@ -268,13 +268,11 @@
             height: 100%;
             object-fit: cover;
             transform: scaleX(-1); 
-            
-            /* Filtro bilanciato: contrasto aumentato per scurire lo sfondo reale e far risaltare la faccia virata sul giallo */
             filter: contrast(2.3) brightness(0.65) sepia(1) hue-rotate(12deg) saturate(1.5);
             opacity: 0.95;
         }
 
-        /* MASCHERA VISIVA PROSPETTICA: Taglio geometrico a corridoio. Sfuma in nero puro ai lati, stringendosi verso il centro */
+        /* MASCHERA PROSPETTICA AI LATI V3 */
         #camera-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -286,7 +284,6 @@
             z-index: 5;
         }
 
-        /* WATERMARK REC IN STILE VIDEOCAMERA TROVATA */
         #camera-hud {
             position: absolute;
             top: 10px;
@@ -316,13 +313,14 @@
             50% { opacity: 0; }
         }
 
+        /* CONTENITORE PULSANTI SCELTA - ANCORATO IN BASSO */
         #choices-container { 
             display: flex; 
             flex-direction: column; 
             gap: 6px; 
-            flex-grow: 1; /* Ora sfrutta lo spazio recuperato dal box 16:9 */
-            justify-content: flex-start;
+            justify-content: flex-end;
             width: 100%;
+            flex-shrink: 0; /* Impedisce che si riduca a discapito dei testi */
             overflow-y: auto;
             padding-bottom: env(safe-area-inset-bottom, 0px); 
         }
@@ -331,9 +329,9 @@
             background-color: transparent;
             color: var(--text-dark);
             border: 2px solid var(--text-dark);
-            padding: 10px;
+            padding: 12px;
             font-family: inherit;
-            font-size: 0.9rem;
+            font-size: 1.05rem; /* Aumentato di 2 punti rispetto al precedente 0.9rem */
             text-align: left;
             cursor: pointer;
             transition: all 0.1s ease;
@@ -348,7 +346,7 @@
             .choice-btn:hover {
                 background-color: var(--text-dark);
                 color: var(--bg-yellow);
-                padding-left: 22px;
+                padding-left: 24px;
             }
             .choice-btn:hover::before { content: "> "; position: absolute; left: 8px; }
         }
@@ -363,9 +361,9 @@
         @media (max-height: 580px) {
             #game-container { padding: 8px; }
             #game-subtitle { display: none; }
-            #text-display { height: 100px; max-height: 100px; font-size: 0.9rem; margin-bottom: 4px; }
+            #text-display { font-size: 1.0rem; margin-bottom: 6px; }
             #camera-container { margin-bottom: 6px; }
-            .choice-btn { padding: 6px 8px; font-size: 0.8rem; }
+            .choice-btn { padding: 8px 10px; font-size: 0.9rem; }
         }
     </style>
 </head>
@@ -375,7 +373,7 @@
     <div id="splash-screen">
         <div id="splash-container" class="animate__animated animate__fadeIn">
             <h1 class="splash-title">THE BACKROOMS</h1>
-            <div class="splash-subtitle">INFINITE DESCENT (Build 23)</div>
+            <div class="splash-subtitle">INFINITE DESCENT (Build 24)</div>
             
             <p style="font-size: 0.9rem; line-height: 1.5; text-align: left; color: #1f1d16; font-weight: bold; margin: 0 0 12px 0; border-left: 3px solid var(--terminal-red); padding-left: 10px;">
                 Non ricordi come sia successo. Un passo falso, uno scivolone fuori dalla realtà, e la consistenza stessa del mondo si è spezzata. Sei sprofondato qui. Un labirinto infinito di moquette umida, pareti gialle asettiche e l'ossessivo ronzio dei neon. Non c'è un'uscita logica. Questo sistema richiede l'accesso visivo ambientale per monitorare i tuoi parametri neuro-ottici.
@@ -396,7 +394,7 @@
     <div id="main-viewport">
         <div id="game-container">
             <div id="header-area">
-                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 23</span></div>
+                <div id="game-title">The Backrooms <span style="font-size: 0.75rem; letter-spacing: 0; opacity: 0.8;">Build 24</span></div>
                 <div id="game-subtitle">Developed by Diego Capani</div>
 
                 <div id="status-bar">
@@ -406,15 +404,17 @@
                 </div>
             </div>
 
+            <!-- IL TESTO SOGGIORNA IN ALTO E CRESCE DINAMICAMENTE -->
             <div id="text-display"></div>
 
-            <!-- CAMERA LIVE BOX SYSTEM V3 (PROSPETTICA 16:9) -->
+            <!-- LA CAMERA VIENE SPOSTATA IN BASSO, IMMEDIATAMENTE SOPRA LE SCELTE -->
             <div id="camera-container">
                 <div id="camera-hud"><div id="rec-dot"></div><span>LIVE_FEED // PERSPECTIVE_TUNNEL</span></div>
                 <div id="camera-overlay"></div>
                 <video id="camera-feed" autoplay playsinline muted></video>
             </div>
 
+            <!-- LE SCELTE SONO ANCORATE SUL FONDO DELLA SCHERMATA -->
             <div id="choices-container"></div>
         </div>
     </div>
@@ -433,7 +433,7 @@
                 video: {
                     facingMode: "user", 
                     width: { ideal: 640 },
-                    height: { ideal: 360 } // Ottimizzato nativamente per il 16:9
+                    height: { ideal: 360 }
                 },
                 audio: false
             };
@@ -576,7 +576,7 @@
         function playProceduralThud() {
             if (!audioInitialized) return;
             const osc = new Tone.Oscillator(42, "sine").toDestination();
-            osc.volume.setValueAtTime(12, Tone.now()); osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.7);
+            box = osc.volume.setValueAtTime(12, Tone.now()); osc.volume.exponentialRampToValueAtTime(-45, Tone.now() + 0.7);
             osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 800);
         }
         function playProceduralPhoneRing() {
@@ -598,7 +598,7 @@
             osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); filter.dispose(); }, 850);
         }
 
-        // ALTRI EFFETTI POOL INTEGRATI
+        // EFFETTI POOL SECONDO BLOCCO
         function playS_NeonOverload() { const osc = new Tone.Oscillator(120, "sawtooth").toDestination(); osc.volume.setValueAtTime(8, Tone.now()); osc.volume.linearRampToValueAtTime(-40, Tone.now() + 0.4); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 450); }
         function playS_IndustrialRelay() { const osc = new Tone.Oscillator(90, "triangle").toDestination(); osc.volume.setValueAtTime(10, Tone.now()); osc.volume.exponentialRampToValueAtTime(-40, Tone.now() + 0.05); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 100); }
         function playS_Infrasub() { const osc = new Tone.Oscillator(30, "sine").toDestination(); osc.volume.setValueAtTime(14, Tone.now()); osc.volume.linearRampToValueAtTime(-45, Tone.now() + 1.5); osc.start(); setTimeout(() => { osc.stop(); osc.dispose(); }, 1600); }
@@ -832,7 +832,6 @@
                 if (gameState.madness >= 100) { renderGame(); return; }
             }
 
-            // GESTIONE DINAMICA FILTRI IN BASE ALLA FOLLIA
             if (gameState.madness >= 80) {
                 body.classList.add("insane-bg"); 
                 toggleSiren(true); 
@@ -875,7 +874,6 @@
             }
 
             document.getElementById("text-display").innerText = applyMadnessToText(room.text);
-            document.getElementById("text-display").scrollTop = 0;
 
             const choicesContainer = document.getElementById("choices-container");
             choicesContainer.innerHTML = "";
